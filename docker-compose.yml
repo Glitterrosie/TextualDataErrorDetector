@@ -1,0 +1,9 @@
+services:
+    detector:
+        container_name: textual_data_error_detector
+        build: .                # Build the image from the Dockerfile inside the current directory
+        volumes:
+          - ./src:/src          # Mount the app directory for live updates
+          - ./datasets:/datasets
+        tty: true               # Keep the container running interactively
+        stdin_open: true

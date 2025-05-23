@@ -1,0 +1,14 @@
+[tool.poetry]
+name = "textual_data_error_detector"
+version = "0.1.0"
+description = ""
+authors = ["Rosmarie Debski <64656859+Glitterrosie@users.noreply.github.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.11"
+pandas = "^2.2.3"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
