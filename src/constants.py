@@ -139,7 +139,7 @@ OCR_CHARACTER_CONFUSIONS = {
     'o': 'c',
     'g': 'q',
     'q': 'g',
-    'b': 'h'
+    'b': 'h',
     'h': 'b',
     'd': 'cl',
     

@@ -15,7 +15,7 @@ class Detector(ABC):
         self.io_handler = IOHandler(dataset_path)
         self.dataset = self.io_handler.import_dataset()
         self.labels = pd.DataFrame(ErrorType.NO_ERROR.value, index=self.dataset.index, columns=self.dataset.columns)
-        self.spellchecked_dataset = self.check_for_spelling_mistakes()
+        self.spellchecked_dataset = None
 
 
     def detect(self, use_tokenized_dataset: bool = False):
@@ -31,6 +31,7 @@ class Detector(ABC):
             print("Tokenizing dataset...")
             self.tokenized_dataset = self._tokenize()
             self.io_handler.save_pickled_dataset(self.tokenized_dataset)
+        self.spellchecked_dataset = self.check_for_spelling_mistakes()
 
         print(self.tokenized_dataset.head())
         
