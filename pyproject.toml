@@ -8,6 +8,7 @@ readme = "README.md"
 [tool.poetry.dependencies]
 python = "^3.11"
 pandas = "^2.2.3"
+pyspellchecker = "^0.8.3"
 
 [build-system]
 requires = ["poetry-core"]
