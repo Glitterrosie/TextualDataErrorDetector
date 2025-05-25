@@ -10,3 +10,8 @@ class WeatherDetector(Detector):
         print(f"Number of cells: {self.dataset.size}, Number of rows: {self.dataset.shape[0]}")
 
         super().detect(use_tokenized_dataset)
+
+        number_columns = ["Date", "MinTemp", "MaxTemp", "Rainfall", "Evaporation", "Sunshine", "WindGustSpeed", "WindSpeed9am", "WindSpeed3pm", "Humidity9am", "Humidity3pm", "Pressure9am", "Pressure3pm", "Cloud9am", "Cloud3pm", "Temp9am", "Temp3pm"]
+        self.check_for_ocr(number_columns)
+        self.check_for_typo()
+        self.check_for_misspellings()
