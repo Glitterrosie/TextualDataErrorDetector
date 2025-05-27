@@ -13,5 +13,8 @@ class IMDBDetector(Detector):
 
         number_columns = ["cast_id", "cast_person_id", "cast_movie_id", "cast_nr_order", "cast_role_id", "person_id", "person_info_type_id", "title_id", "kind_id", "production_year", "episode_of_id", "season_nr", "episode_nr", "series_years"]
         self.check_for_ocr(number_columns) #2.07%
-        self.check_for_typo() #3.31%
-        self.check_for_misspellings()
+        print("Finished OCR")
+        self.check_for_typo_vectorized() #3.31%
+        print("Finished Typo")
+        self.check_for_misspellings_short()
+        print("Finished Misspellings")

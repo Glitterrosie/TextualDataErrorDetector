@@ -13,5 +13,5 @@ class MedicalDetector(Detector):
 
         number_columns = ["encounter_id", "patient_nbr", "age", "weight", "admission_type_id", "discharge_disposition_id", "admission_source_id", "time_in_hospital", "num_lab_procedures", "num_procedures", "num_medications", "number_outpatient", "number_emergency", "number_inpatient", "diag_1"]
         self.check_for_ocr(number_columns)
-        self.check_for_typo()
-        self.check_for_misspellings()
+        self.check_for_typo_vectorized()
+        self.check_for_misspellings_short()
