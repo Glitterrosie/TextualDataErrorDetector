@@ -10,3 +10,10 @@ def is_not_a_number(value: str) -> bool:
         return 0
     except ValueError:
         return 1
+
+def is_a_number(value: str) -> bool:
+    try:
+        float(value)
+        return True
+    except ValueError:
+        return False

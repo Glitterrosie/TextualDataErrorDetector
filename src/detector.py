@@ -65,6 +65,8 @@ class Detector(ABC):
         return self.generic_labeled_dataset[self.generic_labeled_dataset[column_name] == 1].index
 
         
+    def _label_word_transpositions(self, column_names: list[str], row_indices: pd.Index):
+        self.labels.loc[row_indices, column_names] = ErrorType.WORD_TRANSPOSITION.value
 
 
     def check_for_spelling_mistakes(self): # this is a generic method using a library to find possible candidates
