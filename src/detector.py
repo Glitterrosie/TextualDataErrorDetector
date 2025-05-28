@@ -1,17 +1,14 @@
 import re
-import numpy as np
-from constants import KEYBOARD_NEIGHBORS, MISSPELLING_PATTERNS, OCR_CHARACTER_CONFUSIONS
+import time
 from abc import ABC, abstractmethod
-
-import pandas as pd
-from tqdm import tqdm
-from error_types import ErrorType
 from functools import lru_cache
+
+import numpy as np
+import pandas as pd
+from constants import KEYBOARD_NEIGHBORS, MISSPELLING_PATTERNS, OCR_CHARACTER_CONFUSIONS
+from error_types import ErrorType
 from io_handler import IOHandler
 from spellchecker import SpellChecker
-import time
-from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor
-
 
 spell = SpellChecker()
 
@@ -39,7 +36,13 @@ class Detector(ABC):
             self.io_handler.save_pickled_dataset(self.tokenized_dataset)
         self.spellchecked_dataset = self.check_for_spelling_mistakes()
 
-        print(self.tokenized_dataset.head())
+    @abstractmethod
+    def get_column_generic_label_mapping(self):
+        pass
+
+    @abstractmethod
+    def get_column_specific_label_mapping(self):
+        pass
         
     def export(self):
         self.io_handler.export_labels(self.labels)
@@ -189,10 +192,11 @@ class Detector(ABC):
     # Alternative vectorized approach for even better performance
     def check_for_typo_vectorized(self):
         """Ultra-fast vectorized version using numpy operations with progress"""
-        import numpy as np
-        import time
         import sys
-        
+        import time
+
+        import numpy as np
+
         # Create boolean mask for cells that need checking
         needs_check = self.spellchecked_dataset.values == 1
         

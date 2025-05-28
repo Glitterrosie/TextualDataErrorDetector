@@ -15,3 +15,9 @@ class WeatherDetector(Detector):
         self.check_for_ocr(number_columns)
         self.check_for_typo_vectorized()
         self.check_for_misspellings_short()
+
+    def get_column_generic_label_mapping(self):
+        pass
+
+    def get_column_specific_label_mapping(self):
+        pass

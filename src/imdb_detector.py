@@ -18,3 +18,10 @@ class IMDBDetector(Detector):
         print("Finished Typo")
         self.check_for_misspellings_short()
         print("Finished Misspellings")
+
+    def get_column_generic_label_mapping(self):
+        pass
+
+    def get_column_specific_label_mapping(self):
+        pass
+
