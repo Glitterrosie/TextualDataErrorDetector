@@ -5,10 +5,11 @@ from functools import lru_cache
 
 import numpy as np
 import pandas as pd
+from spellchecker import SpellChecker
+
 from constants import KEYBOARD_NEIGHBORS, MISSPELLING_PATTERNS, OCR_CHARACTER_CONFUSIONS
 from error_types import ErrorType
 from io_handler import IOHandler
-from spellchecker import SpellChecker
 
 spell = SpellChecker()
 
@@ -18,34 +19,53 @@ class Detector(ABC):
         self.io_handler = IOHandler(dataset_path)
         self.dataset = self.io_handler.import_dataset()
         self.labels = pd.DataFrame(ErrorType.NO_ERROR.value, index=self.dataset.index, columns=self.dataset.columns)
-        self.spellchecked_dataset = None
+        self.generic_labeled_dataset = None
 
-
-    def detect(self, use_tokenized_dataset: bool = False):
-        """
-        Detects the errors in the dataset.
-        This method should be implemented by subclasses.
-        Parameters:
-            :use_tokenized_dataset: If True, uses an already tokenized dataset for detection and skips the tokenization step.
-        """
-        if use_tokenized_dataset:
-            self.tokenized_dataset = self.io_handler.load_pickled_dataset()
-        else:
-            print("Tokenizing dataset...")
-            self.tokenized_dataset = self._tokenize()
-            self.io_handler.save_pickled_dataset(self.tokenized_dataset)
-        self.spellchecked_dataset = self.check_for_spelling_mistakes()
-
-    @abstractmethod
-    def get_column_generic_label_mapping(self):
-        pass
-
-    @abstractmethod
-    def get_column_specific_label_mapping(self):
-        pass
-        
     def export(self):
         self.io_handler.export_labels(self.labels)
+
+    def detect(self):
+        """
+        Detects the errors in the dataset.
+        """
+
+        self.generic_labeled_dataset = pd.DataFrame(0, index=self.dataset.index, columns=self.dataset.columns)
+        column_generic_label_mapping = self.get_column_generic_label_mapping()
+        for column_name in self.dataset.columns:
+            if column_name not in column_generic_label_mapping:
+                print(f"Warning: Column '{column_name}' not found in generic label mapping. Skipping.")
+                continue
+
+            label_function = column_generic_label_mapping[column_name]
+            self.generic_labeled_dataset[column_name] = self.dataset[column_name].apply(label_function)
+
+        specific_column_label_mapping = self.get_column_specific_label_mapping()
+        for column_name in self.dataset.columns:
+            generic_labeled_cell_indices = self._get_generic_labeled_cell_indices(column_name)
+
+            # each column has its own mapping function how to assign specific error types to the generic labeled cells
+            label_function = specific_column_label_mapping[column_name]
+            self.labels[column_name] = label_function(self.dataset[column_name], generic_labeled_cell_indices)
+
+    @abstractmethod
+    def get_column_generic_label_mapping(self) -> dict:
+        pass
+
+    @abstractmethod
+    def get_column_specific_label_mapping(self) -> dict:
+        pass
+
+    def _get_generic_labeled_cell_indices(self, column_name: str) -> pd.Index:
+        """
+        Returns the indices of the cells that are labeled as generic.
+        """
+        if column_name not in self.generic_labeled_dataset.columns:
+            raise ValueError(f"Column '{column_name}' not found in generic labeled dataset.")
+        
+        return self.generic_labeled_dataset[self.generic_labeled_dataset[column_name] == 1].index
+
+        
+
 
     def check_for_spelling_mistakes(self): # this is a generic method using a library to find possible candidates
         result_df = pd.DataFrame(index=self.tokenized_dataset.index, columns=self.tokenized_dataset.columns)
@@ -63,9 +83,9 @@ class Detector(ABC):
         for row in self.tokenized_dataset.index:
             for col in self.tokenized_dataset.columns:
                 words = self.tokenized_dataset.loc[row, col]
-                if col in number_columns and self.spellchecked_dataset.loc[row, col] == 1: # we mark numbers with mistakes as OCR
+                if col in number_columns and self.generic_labeled_dataset.loc[row, col] == 1: # we mark numbers with mistakes as OCR
                     self.labels.loc[row, col] = ErrorType.OCR.value
-                    self.spellchecked_dataset.loc[row, col] = 0 # reset to prevent double labeling
+                    self.generic_labeled_dataset.loc[row, col] = 0 # reset to prevent double labeling
                 # if any(self.word_has_ocr_character_pattern(word) for word in words):
                 #         self.labels.loc[row, col] = ErrorType.OCR.value
                 #         self.spellchecked_dataset.loc[row, col] = 0 # reset to prevent double labeling
@@ -91,7 +111,7 @@ class Detector(ABC):
         transposition_check = self.word_has_transposition_cached
         error_type_value = ErrorType.TYPO.value
         
-        spellchecked_data = self.spellchecked_dataset.values
+        spellchecked_data = self.generic_labeled_dataset.values
         rows_to_check, cols_to_check = np.where(spellchecked_data == 1)
         total_cells = len(rows_to_check)
         
@@ -108,7 +128,7 @@ class Detector(ABC):
                 for word in words:
                     if typo_check(word) or transposition_check(word):
                         self.labels.values[row_idx, col_idx] = error_type_value
-                        self.spellchecked_dataset.values[row_idx, col_idx] = 0
+                        self.generic_labeled_dataset.values[row_idx, col_idx] = 0
                         typos_found += 1
                         break
             
@@ -198,7 +218,7 @@ class Detector(ABC):
         import numpy as np
 
         # Create boolean mask for cells that need checking
-        needs_check = self.spellchecked_dataset.values == 1
+        needs_check = self.generic_labeled_dataset.values == 1
         
         if not np.any(needs_check):
             print("No cells need typo checking.")
@@ -217,7 +237,7 @@ class Detector(ABC):
         
         # Direct array access for speed
         labels_array = self.labels.values
-        spellchecked_array = self.spellchecked_dataset.values
+        spellchecked_array = self.generic_labeled_dataset.values
         tokenized_array = self.tokenized_dataset.values
         
         start_time = time.time()
@@ -253,9 +273,9 @@ class Detector(ABC):
     def check_for_misspellings_short(self):
         for row in self.tokenized_dataset.index:
             for col in self.tokenized_dataset.columns:
-                if self.spellchecked_dataset.loc[row, col] == 1: # we mark numbers with mistakes as OCR
+                if self.generic_labeled_dataset.loc[row, col] == 1: # we mark numbers with mistakes as OCR
                     self.labels.loc[row, col] = ErrorType.MISSPELLING.value
-                    self.spellchecked_dataset.loc[row, col] = 0
+                    self.generic_labeled_dataset.loc[row, col] = 0
 
 ############################################# Misspellings
 
@@ -286,7 +306,7 @@ class Detector(ABC):
         start_time = time.time()
         
         # Convert to numpy for faster operations
-        spellcheck_array = self.spellchecked_dataset.values
+        spellcheck_array = self.generic_labeled_dataset.values
         tokenized_array = self.tokenized_dataset.values
         labels_array = self.labels.values
         
@@ -337,7 +357,7 @@ class Detector(ABC):
         
         # Update original dataframes
         self.labels.iloc[:, :] = labels_array
-        self.spellchecked_dataset.iloc[:, :] = spellcheck_array
+        self.generic_labeled_dataset.iloc[:, :] = spellcheck_array
         
         total_time = time.time() - start_time
         print(f"Numpy-optimized misspelling check completed in {total_time:.2f} seconds")
