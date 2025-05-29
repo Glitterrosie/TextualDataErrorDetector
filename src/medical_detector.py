@@ -1,4 +1,7 @@
 from detector import Detector
+from utils.generic_label_utils import empty_method, is_not_a_number, has_a_typo_or_misspelling
+from utils.specific_label_utils import no_labels, set_all_labels_to_ocr, differentiate_mistakes_in_categorical_columns
+
 
 
 class MedicalDetector(Detector):
@@ -11,13 +14,117 @@ class MedicalDetector(Detector):
 
         super().detect()
 
-        number_columns = ["encounter_id", "patient_nbr", "age", "weight", "admission_type_id", "discharge_disposition_id", "admission_source_id", "time_in_hospital", "num_lab_procedures", "num_procedures", "num_medications", "number_outpatient", "number_emergency", "number_inpatient", "diag_1"]
-        self.check_for_ocr(number_columns)
-        self.check_for_typo_vectorized()
-        self.check_for_misspellings_short()
+    def get_column_generic_label_mapping(self) -> dict:
+        return {
+            "encounter_id": is_not_a_number,
+            "patient_nbr": is_not_a_number,
+            "race": has_a_typo_or_misspelling,
+            "gender": has_a_typo_or_misspelling,
+            "age": is_not_a_number,
+            "weight": is_not_a_number,
+            "admission_type_id": is_not_a_number,
+            "discharge_disposition_id": is_not_a_number,
+            "admission_source_id": is_not_a_number,
+            "time_in_hospital": is_not_a_number,
+            "payer_code": has_a_typo_or_misspelling,
+            "medical_specialty": has_a_typo_or_misspelling,
+            "num_lab_procedures": is_not_a_number,
+            "num_procedures": is_not_a_number,
+            "num_medications": is_not_a_number,
+            "number_outpatient": is_not_a_number,
+            "number_emergency": is_not_a_number,
+            "number_inpatient": is_not_a_number,
+            "diag_1": is_not_a_number,
+            "diag_2": has_a_typo_or_misspelling,
+            "diag_3": has_a_typo_or_misspelling,
+            "number_diagnoses": has_a_typo_or_misspelling,
+            "max_glu_serum": has_a_typo_or_misspelling,
+            "A1Cresult": has_a_typo_or_misspelling,
+            "metformin": has_a_typo_or_misspelling,
+            "repaglinide": has_a_typo_or_misspelling,
+            "nateglinide": has_a_typo_or_misspelling,
+            "chlorpropamide": has_a_typo_or_misspelling,
+            "glimepiride": has_a_typo_or_misspelling,
+            "acetohexamide": has_a_typo_or_misspelling,
+            "glipizide": has_a_typo_or_misspelling,
+            "glyburide": has_a_typo_or_misspelling,
+            "tolbutamide": has_a_typo_or_misspelling,
+            "pioglitazone": has_a_typo_or_misspelling,
+            "rosiglitazone": has_a_typo_or_misspelling,
+            "acarbose": has_a_typo_or_misspelling,
+            "miglitol": has_a_typo_or_misspelling,
+            "troglitazone": has_a_typo_or_misspelling,
+            "tolazamide": has_a_typo_or_misspelling,
+            "examide": has_a_typo_or_misspelling,
+            "citoglipton": has_a_typo_or_misspelling,
+            "insulin": has_a_typo_or_misspelling,
+            "glyburide-metformin": has_a_typo_or_misspelling,
+            "glipizide-metformin": has_a_typo_or_misspelling,
+            "glimepiride-pioglitazone": has_a_typo_or_misspelling,
+            "metformin-rosiglitazone": has_a_typo_or_misspelling,
+            "metformin-pioglitazone": has_a_typo_or_misspelling,
+            "change": has_a_typo_or_misspelling,
+            "diabetesMed": has_a_typo_or_misspelling,
+            "readmitted": has_a_typo_or_misspelling,
+            "admission_type_desc": has_a_typo_or_misspelling,
+            "admission_source_desc": has_a_typo_or_misspelling,
+            "discharge_disposition_desc": has_a_typo_or_misspelling,
+        }
 
-    def get_column_generic_label_mapping(self):
-        pass
 
-    def get_column_specific_label_mapping(self):
-        pass
+    def get_column_specific_label_mapping(self) -> dict:
+        return {
+            "encounter_id": set_all_labels_to_ocr,
+            "patient_nbr": set_all_labels_to_ocr,
+            "race": differentiate_mistakes_in_categorical_columns,
+            "gender": differentiate_mistakes_in_categorical_columns,
+            "age": set_all_labels_to_ocr,
+            "weight": set_all_labels_to_ocr,
+            "admission_type_id": set_all_labels_to_ocr,
+            "discharge_disposition_id": set_all_labels_to_ocr,
+            "admission_source_id": set_all_labels_to_ocr,
+            "time_in_hospital": set_all_labels_to_ocr,
+            "payer_code": differentiate_mistakes_in_categorical_columns,
+            "medical_specialty": differentiate_mistakes_in_categorical_columns,
+            "num_lab_procedures": set_all_labels_to_ocr,
+            "num_procedures": set_all_labels_to_ocr,
+            "num_medications": set_all_labels_to_ocr,
+            "number_outpatient": set_all_labels_to_ocr,
+            "number_emergency": set_all_labels_to_ocr,
+            "number_inpatient": set_all_labels_to_ocr,
+            "diag_1": set_all_labels_to_ocr,
+            "diag_2": differentiate_mistakes_in_categorical_columns,
+            "diag_3": differentiate_mistakes_in_categorical_columns,
+            "number_diagnoses": differentiate_mistakes_in_categorical_columns,
+            "max_glu_serum": differentiate_mistakes_in_categorical_columns,
+            "A1Cresult": differentiate_mistakes_in_categorical_columns,
+            "metformin": differentiate_mistakes_in_categorical_columns,
+            "repaglinide": differentiate_mistakes_in_categorical_columns,
+            "nateglinide": differentiate_mistakes_in_categorical_columns,
+            "chlorpropamide": differentiate_mistakes_in_categorical_columns,
+            "glimepiride": differentiate_mistakes_in_categorical_columns,
+            "acetohexamide": differentiate_mistakes_in_categorical_columns,
+            "glipizide": differentiate_mistakes_in_categorical_columns,
+            "glyburide": differentiate_mistakes_in_categorical_columns,
+            "tolbutamide": differentiate_mistakes_in_categorical_columns,
+            "pioglitazone": differentiate_mistakes_in_categorical_columns,
+            "rosiglitazone": differentiate_mistakes_in_categorical_columns,
+            "acarbose": differentiate_mistakes_in_categorical_columns,
+            "miglitol": differentiate_mistakes_in_categorical_columns,
+            "troglitazone": differentiate_mistakes_in_categorical_columns,
+            "tolazamide": differentiate_mistakes_in_categorical_columns,
+            "examide": differentiate_mistakes_in_categorical_columns,
+            "citoglipton": differentiate_mistakes_in_categorical_columns,
+            "insulin": differentiate_mistakes_in_categorical_columns,
+            "glyburide-metformin": differentiate_mistakes_in_categorical_columns,
+            "glipizide-metformin": differentiate_mistakes_in_categorical_columns,
+            "glimepiride-pioglitazone": differentiate_mistakes_in_categorical_columns,
+            "metformin-rosiglitazone": differentiate_mistakes_in_categorical_columns,
+            "metformin-pioglitazone": differentiate_mistakes_in_categorical_columns,
+            "change": differentiate_mistakes_in_categorical_columns,
+            "diabetesMed": differentiate_mistakes_in_categorical_columns,
+            "readmitted": differentiate_mistakes_in_categorical_columns,
+            "admission_type_desc": differentiate_mistakes_in_categorical_columns,
+            "admission_source_desc": differentiate_mistakes_in_categorical_columns,
+            "discharge_disposition_desc": differentiate_mistakes_in_categorical_columns,
+        }
