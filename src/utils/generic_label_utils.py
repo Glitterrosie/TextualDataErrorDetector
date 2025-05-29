@@ -18,7 +18,7 @@ def is_not_a_number(value: str) -> bool:
     except ValueError:
         return 1
     
-def has_a_typo_or_misspelling(value: str) -> bool:
+def check_with_spelling_library(value: str) -> bool:
     tokenized_value = tokenizer.tokenize_cell(value)
     misspelled = spell.unknown(tokenized_value)
     return list(misspelled)[0] if misspelled else 0
