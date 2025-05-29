@@ -1,6 +1,6 @@
 from detector import Detector
-from utils.generic_label_utils import empty_method, is_not_a_number
-from utils.specific_label_utils import no_labels, set_all_labels_to_ocr
+from utils.generic_label_utils import empty_method, is_not_a_number, has_a_typo_or_misspelling
+from utils.specific_label_utils import no_labels, set_all_labels_to_ocr, differentiate_mistakes_in_categorical_columns
 
 
 class WeatherDetector(Detector):
@@ -16,16 +16,16 @@ class WeatherDetector(Detector):
     def get_column_generic_label_mapping(self) -> dict:
         return {
             "Date": empty_method,
-            "Location": empty_method,
+            "Location": has_a_typo_or_misspelling,
             "MinTemp": is_not_a_number,
             "MaxTemp": is_not_a_number,
             "Rainfall": is_not_a_number,
             "Evaporation":is_not_a_number,
             "Sunshine": is_not_a_number,
-            "WindGustDir":  empty_method,
+            "WindGustDir":  has_a_typo_or_misspelling,
             "WindGustSpeed": is_not_a_number,
-            "WindDir9am": empty_method,
-            "WindDir3pm": empty_method,
+            "WindDir9am": has_a_typo_or_misspelling,
+            "WindDir3pm": has_a_typo_or_misspelling,
             "WindSpeed9am": is_not_a_number,
             "WindSpeed3pm": is_not_a_number,
             "Humidity9am": is_not_a_number,
@@ -36,23 +36,23 @@ class WeatherDetector(Detector):
             "Cloud3pm": is_not_a_number,
             "Temp9am": is_not_a_number,
             "Temp3pm": is_not_a_number,
-            "RainToday": empty_method,
-            "RainTomorrow": empty_method,
+            "RainToday": has_a_typo_or_misspelling,
+            "RainTomorrow": has_a_typo_or_misspelling,
         }
 
     def get_column_specific_label_mapping(self) -> dict:
         return {
             "Date": no_labels,
-            "Location": no_labels,
+            "Location": differentiate_mistakes_in_categorical_columns,
             "MinTemp": set_all_labels_to_ocr,
             "MaxTemp": set_all_labels_to_ocr,
             "Rainfall": set_all_labels_to_ocr,
             "Evaporation": set_all_labels_to_ocr,
             "Sunshine": set_all_labels_to_ocr,
-            "WindGustDir": no_labels,
+            "WindGustDir": differentiate_mistakes_in_categorical_columns,
             "WindGustSpeed": set_all_labels_to_ocr,
-            "WindDir9am": no_labels,
-            "WindDir3pm": no_labels,
+            "WindDir9am": differentiate_mistakes_in_categorical_columns,
+            "WindDir3pm": differentiate_mistakes_in_categorical_columns,
             "WindSpeed9am": set_all_labels_to_ocr,
             "WindSpeed3pm": set_all_labels_to_ocr,
             "Humidity9am": set_all_labels_to_ocr,
@@ -63,6 +63,6 @@ class WeatherDetector(Detector):
             "Cloud3pm": set_all_labels_to_ocr,
             "Temp9am": set_all_labels_to_ocr,
             "Temp3pm": set_all_labels_to_ocr,
-            "RainToday": no_labels,
-            "RainTomorrow": no_labels,
+            "RainToday": differentiate_mistakes_in_categorical_columns,
+            "RainTomorrow": differentiate_mistakes_in_categorical_columns,
         }
