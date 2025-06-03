@@ -2,6 +2,7 @@ import os
 import pickle
 
 import pandas as pd
+
 from error_types import ErrorType
 
 
@@ -25,7 +26,10 @@ class IOHandler():
             os.makedirs(output_folder)
 
         base_name, ext = os.path.splitext(os.path.basename(self.dataset_path))
-        labels_base_name = base_name + '_error_mappings'
+        if "w_errors" in base_name:
+            labels_base_name = base_name.replace("w_errors", "error_mappings")
+        else:
+            labels_base_name = base_name + "_error_mappings"
 
         labels_output_path = os.path.join(output_folder, f"{labels_base_name}{ext}")
         labels.to_csv(labels_output_path, index=False)
