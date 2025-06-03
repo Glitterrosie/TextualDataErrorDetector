@@ -75,7 +75,7 @@ class IMDBDetector(Detector):
             "episode_nr": set_all_labels_to_ocr,
             "series_years": set_all_labels_to_ocr,
             "md5sum": differentiate_errors_in_categorical_columns,
-            "name": differentiate_errors_in_categorical_columns,
+            "name": set_all_labels_to_ocr, # we checked manually, all unique values in this column are due to OCR errors
         }
 
     def _is_valid_phonetic_code(self, cell: str) -> int:
