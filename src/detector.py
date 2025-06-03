@@ -1,7 +1,9 @@
 from abc import ABC, abstractmethod
+
 import pandas as pd
-from io_handler import IOHandler
+
 from error_types import ErrorType
+from io_handler import IOHandler
 
 
 class Detector(ABC):
@@ -58,3 +60,6 @@ class Detector(ABC):
             raise ValueError(f"Column '{column_name}' not found in generic labeled dataset.")
         
         return self.generic_labeled_dataset[self.generic_labeled_dataset[column_name] != 0].index
+
+    def _label_word_transpositions(self, column_names: list[str], row_indices: pd.Index):
+        self.labels.loc[row_indices, column_names] = ErrorType.WORD_TRANSPOSITION.value
