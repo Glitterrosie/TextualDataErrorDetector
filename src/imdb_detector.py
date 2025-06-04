@@ -1,12 +1,21 @@
+from functools import partial
 import re
 
 import pandas as pd
 
 from detector import Detector
 from error_types import ErrorType
-from utils.generic_label_utils import check_with_spelling_library, is_not_a_number
+from utils.generic_label_utils import (
+    check_with_spelling_library,
+    empty_method,
+    is_not_a_number,
+    is_not_a_year,
+)
 from utils.specific_label_utils import (
     differentiate_errors_in_categorical_columns,
+    differentiate_errors_in_number_columns,
+    label_year,
+    no_labels,
     set_all_labels_to_ocr,
 )
 
@@ -44,8 +53,8 @@ class IMDBDetector(Detector):
             "episode_of_id": is_not_a_number,
             "season_nr": is_not_a_number,
             "episode_nr": is_not_a_number,
-            "series_years": is_not_a_number,
-            "md5sum": check_with_spelling_library,
+            "series_years": is_not_a_year,
+            "md5sum": empty_method, # TODO: check how to handle this column
             "name": check_with_spelling_library,
         }
 
@@ -73,8 +82,8 @@ class IMDBDetector(Detector):
             "episode_of_id": set_all_labels_to_ocr,
             "season_nr": set_all_labels_to_ocr,
             "episode_nr": set_all_labels_to_ocr,
-            "series_years": set_all_labels_to_ocr,
-            "md5sum": differentiate_errors_in_categorical_columns,
+            "series_years": partial(differentiate_errors_in_number_columns, label_func=label_year),
+            "md5sum": no_labels,
             "name": set_all_labels_to_ocr, # we checked manually, all unique values in this column are due to OCR errors
         }
 

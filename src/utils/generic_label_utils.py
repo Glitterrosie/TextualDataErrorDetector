@@ -32,3 +32,13 @@ def check_with_spelling_library(value: str) -> bool:
         if spell.unknown([token]):
             return token # return the first misspelled token (early return)
     return 0
+
+def is_not_a_year(value: str) -> bool:
+    """
+    Check if a string is not a year (4-digit number).
+    """
+    tokens = tokenizer.tokenize_cell(value)
+    for token in tokens:
+        if not token.isdigit() or len(token) != 4:
+            return token
+    return 0
