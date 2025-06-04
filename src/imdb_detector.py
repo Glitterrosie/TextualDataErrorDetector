@@ -1,5 +1,5 @@
-from functools import partial
 import re
+from functools import partial
 
 import pandas as pd
 
@@ -9,7 +9,6 @@ from utils.generic_label_utils import (
     check_with_spelling_library,
     empty_method,
     is_not_a_number,
-    is_not_a_year,
 )
 from utils.specific_label_utils import (
     differentiate_errors_in_categorical_columns,
@@ -48,12 +47,12 @@ class IMDBDetector(Detector):
             "title": check_with_spelling_library,
             "imdb_index": self._is_valid_roman_numeral,
             "kind_id": is_not_a_number,
-            "production_year": is_not_a_number,
+            "production_year": self.is_not_a_production_year,
             "phonetic_code": self._is_valid_phonetic_code,
             "episode_of_id": is_not_a_number,
             "season_nr": is_not_a_number,
             "episode_nr": is_not_a_number,
-            "series_years": is_not_a_year,
+            "series_years": self.is_not_a_series_years,
             "md5sum": empty_method, # TODO: check how to handle this column
             "name": check_with_spelling_library,
         }
@@ -77,7 +76,7 @@ class IMDBDetector(Detector):
             "title": differentiate_errors_in_categorical_columns,
             "imdb_index": set_all_labels_to_ocr,
             "kind_id": set_all_labels_to_ocr,
-            "production_year": set_all_labels_to_ocr,
+            "production_year": set_all_labels_to_ocr, # although we could check for valid years, we found that all wrong values in this colun are actually OCRs
             "phonetic_code": self._label_phonetic_code,
             "episode_of_id": set_all_labels_to_ocr,
             "season_nr": set_all_labels_to_ocr,
@@ -106,6 +105,27 @@ class IMDBDetector(Detector):
         if re.fullmatch(r'M{0,3}(CM|CD|D?C{0,3})(XC|XL|L?X{0,3})(IX|IV|V?I{0,3})', cell):
             return 0
         return 1
+
+    def is_not_a_series_years(self, value: str) -> bool:
+        """
+        Check if a string is not a year (4-digit number).
+        """
+        tokens = self.tokenizer.tokenize_cell(value)
+        for token in tokens:
+            if not token.isdigit() or len(token) != 4:
+                return token
+        return 0
+
+    def is_not_a_production_year(self, value: str) -> bool:
+        """
+        Check if a string is not a production year (4-digit number).
+        """
+        tokens = self.tokenizer.tokenize_cell(value)
+        if not tokens[0].isdigit() or len(tokens[0]) != 4:
+            return tokens[0]
+        if not tokens[1].isdigit():
+            return tokens[1]
+        return 0
 
     def _label_phonetic_code(self, data_column: pd.Series, generic_labeled_cell_indices: pd.Index, generic_labeled_dataset) -> pd.Series:
         label_column = pd.Series(0, index=data_column.index, dtype=int)

@@ -65,7 +65,6 @@ def differentiate_errors_in_number_columns(data_column: pd.Series, generic_label
     for word in unique_flawed_words:
         typo_word_map[word] = label_func(word) 
 
-
     # Remap results back to the original indices
     for index, word in flawed_words_series.items():
         if typo_word_map.get(word, False):
@@ -111,10 +110,12 @@ def label_year(token: str) -> int:
     """
     Distinguish different types of errors in a year token.
     """
-    if len(token) != 4: # e.g. 20213
+    token = token.lower()
+    if len(token) != 4: # cases like 20213 or 203
         return ErrorType.TYPO.value
     
-    if is_key_error(token, range(1880, 2025)):
+    string_years = [str(i) for i in range(1880, 2025)]
+    if is_key_error(token, string_years): # case of exactly 4 numbers
         return ErrorType.TYPO.value
 
-    return ErrorType.OCR.value
+    return ErrorType.OCR.value # otherwise assume it's OCR
