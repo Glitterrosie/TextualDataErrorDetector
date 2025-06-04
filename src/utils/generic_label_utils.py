@@ -1,5 +1,6 @@
 import pandas as pd
 from spellchecker import SpellChecker
+
 from tokenizer import Tokenizer
 
 tokenizer = Tokenizer()
@@ -17,10 +18,16 @@ def is_not_a_number(value: str) -> bool:
         return 0
     except ValueError:
         return 1
+
+def is_a_number(value: str) -> bool:
+    try:
+        float(value)
+        return True
+    except ValueError:
+        return False
     
 def check_with_spelling_library(value: str) -> bool:
     tokenized_value = tokenizer.tokenize_cell(value)
     misspelled = spell.unknown(tokenized_value)
     return list(misspelled)[0] if misspelled else 0
-
 
