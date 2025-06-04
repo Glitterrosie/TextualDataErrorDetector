@@ -4,6 +4,7 @@ import pandas as pd
 
 from error_types import ErrorType
 from io_handler import IOHandler
+from tokenizer import Tokenizer
 
 
 class Detector(ABC):
@@ -12,6 +13,7 @@ class Detector(ABC):
         self.dataset = self.io_handler.import_dataset()
         self.labels = pd.DataFrame(ErrorType.NO_ERROR.value, index=self.dataset.index, columns=self.dataset.columns)
         self.generic_labeled_dataset = None
+        self.tokenizer = Tokenizer()
 
     def export(self):
         self.io_handler.export_labels(self.labels)
