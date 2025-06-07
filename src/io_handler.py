@@ -11,7 +11,7 @@ positives = {
         "typos": 240833,
         "misspellings": 215062,
         "ocrs": 196447,
-        "transpositions": 0
+        "transpositions": 0 # no numbers yet
         },
     "weather_subset1_group1_w_errors":
         {
@@ -25,7 +25,7 @@ positives = {
         "typos": 14927,
         "misspellings": 22575,
         "ocrs": 43957,
-        "transpositions": 0
+        "transpositions": 0 # no numbers yet
         },
 }
 
@@ -83,7 +83,6 @@ class IOHandler():
         print(f"Percentage of misspelling cells: \t{num_misspellings / total_cells * 100:.2f}%. \tTotal of {num_misspellings}/{true_misspellings} labeled.")
         print(f"Percentage of OCR cells: \t\t{num_ocrs / total_cells * 100:.2f}%. \tTotal of {num_ocrs}/{true_ocrs} labeled.")
         print(f"Percentage of transposition cells: \t{num_word_transpositions / total_cells * 100:.2f}%. \tTotal of {num_word_transpositions}/{true_transpositions} labeled.\n\n")
-        print(f"Number of true positives: {num_labeled_cells}, Number of labeled rows: {num_labeled_rows}")
 
 
     def save_pickled_dataset(self, dataset: pd.DataFrame):
