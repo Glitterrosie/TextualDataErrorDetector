@@ -20,6 +20,7 @@ class IMDBDetector(Detector):
         print(f"Number of cells: {self.dataset.size}, Number of rows: {self.dataset.shape[0]}")
 
         super().detect() 
+        self._label_cast_note_person_note_transpositions()
 
     def get_column_generic_label_mapping(self) -> dict:
         return {
@@ -118,3 +119,11 @@ class IMDBDetector(Detector):
                 label_column.loc[index] = error_word_map[word]
 
         return label_column
+
+    def _label_cast_note_person_note_transpositions(self):
+        """
+        The rainfall and evaporation columns have transpositions. The rule we found (which does not hold in all cases) is that
+        the cast_note is round braces, while the person_note is only sometimes
+        """
+        person_note_in_braces = self.dataset[self.dataset['person_note'].str.startswith('(') & self.dataset['person_note'].str.endswith(')')]
+        self._label_word_transpositions(column_names=["cast_note", "person_note"], row_indices=person_note_in_braces.index)
