@@ -46,7 +46,7 @@ class IMDBDetector(Detector):
             "season_nr": is_not_a_number,
             "episode_nr": is_not_a_number,
             "series_years": is_not_a_number,
-            "md5sum": check_with_spelling_library,
+            "md5sum": self._is_not_a_valid_hash,
             "name": check_with_spelling_library,
         }
 
@@ -75,7 +75,7 @@ class IMDBDetector(Detector):
             "season_nr": set_all_labels_to_ocr,
             "episode_nr": set_all_labels_to_ocr,
             "series_years": set_all_labels_to_ocr,
-            "md5sum": differentiate_errors_in_categorical_columns,
+            "md5sum": set_all_labels_to_ocr,
             "name": set_all_labels_to_ocr, # we checked manually, all unique values in this column are due to OCR errors
         }
 
@@ -119,10 +119,13 @@ class IMDBDetector(Detector):
                 label_column.loc[index] = error_word_map[word]
 
         return label_column
+    
+    def _is_not_a_valid_hash(self, value: str):
+        return all(c in "0123456789abcdefABCDEF" for c in value)
 
     def _label_cast_note_person_note_transpositions(self):
         """
-        The rainfall and evaporation columns have transpositions. The rule we found (which does not hold in all cases) is that
+        The cast_note and person_note columns have transpositions. The rule we found (which does not hold in all cases) is that
         the cast_note is round braces, while the person_note is only sometimes
         """
         person_note_in_braces = self.dataset[self.dataset['person_note'].str.startswith('(') & self.dataset['person_note'].str.endswith(')')]

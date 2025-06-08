@@ -17,6 +17,7 @@ class MedicalDetector(Detector):
         print(f"Number of cells: {self.dataset.size}, Number of rows: {self.dataset.shape[0]}")
 
         super().detect()
+        self._label_diabetesMed_change_transpositions()
 
     def get_column_generic_label_mapping(self) -> dict:
         return {
@@ -152,4 +153,10 @@ class MedicalDetector(Detector):
             return word
         return 0
 
-
+    def _label_diabetesMed_change_transpositions(self):
+        """
+        The diabetesMed and change columns have transpositions. The rule we found is that if Ch appears in the diabetesMed column,
+        the columns are probably switched.
+        """
+        change_in_diabetes_med = self.dataset[self.dataset['diabetesMed'] == "Ch"]
+        self._label_word_transpositions(column_names=["diabetesMed", "change"], row_indices=change_in_diabetes_med.index)
