@@ -100,12 +100,13 @@ class WeatherDetector(Detector):
             "Cloud3pm": is_not_a_number,
             "Temp9am": is_not_a_number,
             "Temp3pm": is_not_a_number,
-            "RainToday": check_with_spelling_library,
-            "RainTomorrow": check_with_spelling_library,
+            "RainToday": self._is_not_yes_no,
+            "RainTomorrow": self._is_not_yes_no,
         }
 
     def get_column_specific_label_mapping(self) -> dict:
         wind_dir_function = partial(differentiate_errors_in_categorical_columns, categorical_values=VALID_WIND_DIRECTIONS)
+        yes_no_function = partial(differentiate_errors_in_categorical_columns, categorical_values=["Yes", "No"])
 
         return {
             "Date": set_all_labels_to_ocr,
@@ -129,8 +130,8 @@ class WeatherDetector(Detector):
             "Cloud3pm": set_all_labels_to_ocr,
             "Temp9am": set_all_labels_to_ocr,
             "Temp3pm": set_all_labels_to_ocr,
-            "RainToday": differentiate_errors_in_categorical_columns,
-            "RainTomorrow": differentiate_errors_in_categorical_columns,
+            "RainToday": yes_no_function,
+            "RainTomorrow": yes_no_function,
         }
 
     def _is_not_a_valid_date(self, value: str) -> bool:
@@ -156,4 +157,10 @@ class WeatherDetector(Detector):
         Valid directions are: N, NNE, NE, ENE, E, ESE, SE, SSE, S, SSW, SW, WSW, W, WNW, NW, NNW.
         """
         return value if value not in VALID_WIND_DIRECTIONS else False
+
+    def _is_not_yes_no(self, value: str) -> bool:
+        """
+        Check if the value is not 'Yes' or 'No'.
+        """
+        return value if value not in ["Yes", "No"] else False
 
