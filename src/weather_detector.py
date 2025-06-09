@@ -94,8 +94,8 @@ class WeatherDetector(Detector):
             "WindSpeed3pm": is_not_a_number,
             "Humidity9am": is_not_a_number,
             "Humidity3pm": is_not_a_number,
-            "Pressure9am": is_not_a_number,
-            "Pressure3pm": is_not_a_number,
+            "Pressure9am": self._is_not_valid_pressure,
+            "Pressure3pm": self._is_not_valid_pressure,
             "Cloud9am": is_not_a_number,
             "Cloud3pm": is_not_a_number,
             "Temp9am": is_not_a_number,
@@ -124,7 +124,7 @@ class WeatherDetector(Detector):
             "WindSpeed3pm": set_all_labels_to_ocr,
             "Humidity9am": set_all_labels_to_ocr,
             "Humidity3pm": set_all_labels_to_ocr,
-            "Pressure9am": set_all_labels_to_ocr,
+            "Pressure9am": set_all_labels_to_ocr, # TODO: do not set all to OCR, but also check for typos
             "Pressure3pm": set_all_labels_to_ocr,
             "Cloud9am": set_all_labels_to_ocr,
             "Cloud3pm": set_all_labels_to_ocr,
@@ -163,4 +163,15 @@ class WeatherDetector(Detector):
         Check if the value is not 'Yes' or 'No'.
         """
         return value if value not in ["Yes", "No"] else False
+
+    def _is_not_valid_pressure(self, value: str) -> bool:
+        """
+        Check if the value is not a valid pressure.
+        A valid pressure is a number between 950 and 1050.
+        """
+        try:
+            pressure = float(value)
+            return value if pressure < 950 or pressure > 1050 else False
+        except ValueError:
+            return value
 
