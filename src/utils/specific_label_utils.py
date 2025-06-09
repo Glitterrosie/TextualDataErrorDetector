@@ -19,12 +19,12 @@ def set_all_labels_to_ocr(data_column: pd.Series, generic_labeled_cell_indices: 
     label_column.loc[generic_labeled_cell_indices] = ErrorType.OCR.value
     return label_column
 
-def differentiate_errors_in_categorical_columns(data_column: pd.Series, generic_labeled_cell_indices: pd.Index, generic_labeled_dataset: pd.DataFrame, categorical_values_list: list[str] = None) -> pd.Series:
+def differentiate_errors_in_categorical_columns(data_column: pd.Series, generic_labeled_cell_indices: pd.Index, generic_labeled_dataset: pd.DataFrame, categorical_values: list[str] = None) -> pd.Series:
     label_column = pd.Series(0, index=data_column.index, dtype=int)
     flawed_words_series = generic_labeled_dataset.loc[generic_labeled_cell_indices]
     unique_flawed_words = flawed_words_series.unique()
 
-    correct_words_list = categorical_values_list if categorical_values_list is not None else spell
+    correct_words_list = categorical_values if categorical_values is not None else spell
     
     typo_word_map = {}
 

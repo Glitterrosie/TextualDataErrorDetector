@@ -78,7 +78,7 @@ class MedicalDetector(Detector):
 
     def get_column_specific_label_mapping(self) -> dict:
         # TODO: using a categorical_values_list greatly DECREASES the number of typos and misspelings and INCREASES the number of OCR errors, check if this is correct
-        no_steady_up_down_func = partial(differentiate_errors_in_categorical_columns, categorical_values_list=['No', 'Steady', 'Up', 'Down'])
+        no_steady_up_down_func = partial(differentiate_errors_in_categorical_columns, categorical_values=['No', 'Steady', 'Up', 'Down'])
 
         return {
             "encounter_id": set_all_labels_to_ocr,

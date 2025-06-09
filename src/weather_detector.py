@@ -1,3 +1,5 @@
+from functools import partial
+
 from detector import Detector
 from utils.generic_label_utils import (
     check_with_spelling_library,
@@ -10,6 +12,11 @@ from utils.specific_label_utils import (
     no_labels,
     set_all_labels_to_ocr,
 )
+
+VALID_WIND_DIRECTIONS = {
+    "N", "NNE", "NE", "ENE", "E", "ESE", "SE", "SSE",
+    "S", "SSW", "SW", "WSW", "W", "WNW", "NW", "NNW"
+}
 
 
 class WeatherDetector(Detector):
@@ -79,10 +86,10 @@ class WeatherDetector(Detector):
             "Rainfall": is_not_a_number,
             "Evaporation":is_not_a_number,
             "Sunshine": is_not_a_number,
-            "WindGustDir":  check_with_spelling_library,
+            "WindGustDir":  self._is_not_valid_wind_dir,
             "WindGustSpeed": is_not_a_number,
-            "WindDir9am": check_with_spelling_library,
-            "WindDir3pm": check_with_spelling_library,
+            "WindDir9am": self._is_not_valid_wind_dir,
+            "WindDir3pm": self._is_not_valid_wind_dir,
             "WindSpeed9am": is_not_a_number,
             "WindSpeed3pm": is_not_a_number,
             "Humidity9am": is_not_a_number,
@@ -98,6 +105,8 @@ class WeatherDetector(Detector):
         }
 
     def get_column_specific_label_mapping(self) -> dict:
+        wind_dir_function = partial(differentiate_errors_in_categorical_columns, categorical_values=VALID_WIND_DIRECTIONS)
+
         return {
             "Date": set_all_labels_to_ocr,
             "Location": differentiate_errors_in_categorical_columns,
@@ -106,10 +115,10 @@ class WeatherDetector(Detector):
             "Rainfall": set_all_labels_to_ocr,
             "Evaporation": set_all_labels_to_ocr,
             "Sunshine": set_all_labels_to_ocr,
-            "WindGustDir": differentiate_errors_in_categorical_columns,
+            "WindGustDir": wind_dir_function,
             "WindGustSpeed": set_all_labels_to_ocr,
-            "WindDir9am": differentiate_errors_in_categorical_columns,
-            "WindDir3pm": differentiate_errors_in_categorical_columns,
+            "WindDir9am": wind_dir_function,
+            "WindDir3pm": wind_dir_function,
             "WindSpeed9am": set_all_labels_to_ocr,
             "WindSpeed3pm": set_all_labels_to_ocr,
             "Humidity9am": set_all_labels_to_ocr,
@@ -140,4 +149,11 @@ class WeatherDetector(Detector):
         if not (1 <= int(month) <= 12 and 1 <= int(day) <= 31):
             return True
         return False
+
+    def _is_not_valid_wind_dir(self, value: str) -> bool:
+        """
+        Check if the wind gust direction is not a valid direction.
+        Valid directions are: N, NNE, NE, ENE, E, ESE, SE, SSE, S, SSW, SW, WSW, W, WNW, NW, NNW.
+        """
+        return value if value not in VALID_WIND_DIRECTIONS else False
 
