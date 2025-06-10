@@ -5,16 +5,11 @@ import pandas as pd
 
 from detector import Detector
 from error_types import ErrorType
-from utils.generic_label_utils import (
-    check_with_spelling_library,
-    empty_method,
-    is_not_a_number,
-)
+from utils.generic_label_utils import check_with_spelling_library, is_not_a_number, is_a_number
 from utils.specific_label_utils import (
     differentiate_errors_in_categorical_columns,
     differentiate_errors_in_number_columns,
     label_year,
-    no_labels,
     set_all_labels_to_ocr,
 )
 
@@ -28,6 +23,8 @@ class IMDBDetector(Detector):
         print(f"Number of cells: {self.dataset.size}, Number of rows: {self.dataset.shape[0]}")
 
         super().detect() 
+        self._label_cast_note_person_note_transpositions()
+        self._label_cast_id_cast_person_id_transpositions()
 
     def get_column_generic_label_mapping(self) -> dict:
         return {
@@ -53,7 +50,7 @@ class IMDBDetector(Detector):
             "season_nr": is_not_a_number,
             "episode_nr": is_not_a_number,
             "series_years": self.is_not_a_series_years,
-            "md5sum": empty_method, # TODO: check how to handle this column
+            "md5sum": self._is_not_a_valid_hash,
             "name": check_with_spelling_library,
         }
 
@@ -82,7 +79,7 @@ class IMDBDetector(Detector):
             "season_nr": set_all_labels_to_ocr,
             "episode_nr": set_all_labels_to_ocr,
             "series_years": partial(differentiate_errors_in_number_columns, label_func=label_year),
-            "md5sum": no_labels,
+            "md5sum": set_all_labels_to_ocr,
             "name": set_all_labels_to_ocr, # we checked manually, all unique values in this column are due to OCR errors
         }
 
@@ -147,3 +144,23 @@ class IMDBDetector(Detector):
                 label_column.loc[index] = error_word_map[word]
 
         return label_column
+    
+    def _is_not_a_valid_hash(self, value: str):
+        return all(c in "0123456789abcdefABCDEF" for c in value)
+
+    def _label_cast_note_person_note_transpositions(self):
+        """
+        The cast_note and person_note columns have transpositions. The rule we found (which does not hold in all cases) is that
+        the cast_note is round braces, while the person_note is only sometimes in braces.
+        """
+        person_note_in_braces = self.dataset[self.dataset['person_note'].str.startswith('(') & self.dataset['person_note'].str.endswith(')')]
+        self._label_word_transpositions(column_names=["cast_note", "person_note"], row_indices=person_note_in_braces.index)
+ 
+    def _label_cast_id_cast_person_id_transpositions(self):
+        """
+        The cast_id and cast_person_id columns have transpositions. cast_id always has 8 digits, cast_person_id always has 7 or less digits. 
+        Therefore if cast_id has 7 digits, it was probably switched.
+        """
+        both_numeric = self.dataset[self.dataset['cast_id'].apply(is_a_number) & self.dataset['cast_person_id'].apply(is_a_number)]
+        rainfall_contains_153712 = both_numeric[both_numeric['cast_id'].astype(str).str.len() != 8]
+        self._label_word_transpositions(column_names=["cast_id", "cast_person_id"], row_indices=rainfall_contains_153712.index)
