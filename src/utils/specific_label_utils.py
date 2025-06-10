@@ -1,6 +1,7 @@
 from functools import lru_cache
 
 import pandas as pd
+import string
 from spellchecker import SpellChecker
 
 from constants import KEYBOARD_NEIGHBORS, MISSPELLING_PATTERNS
@@ -32,6 +33,10 @@ def differentiate_errors_in_categorical_columns(data_column: pd.Series, generic_
         if is_transposition(word, correct_words_list):
             typo_word_map[word] = ErrorType.TYPO.value
         elif is_key_error(word, correct_words_list):
+            typo_word_map[word] = ErrorType.TYPO.value
+        elif is_deletion(word, correct_words_list):
+            typo_word_map[word] = ErrorType.TYPO.value
+        elif is_insertion_or_replication(word, correct_words_list):
             typo_word_map[word] = ErrorType.TYPO.value
         elif has_linguistic_misspelling_pattern(word, correct_words_list):
             typo_word_map[word] = ErrorType.MISSPELLING.value
@@ -66,7 +71,25 @@ def is_key_error(word, correct_words_list):
             if any(word_prefix + neighbor + word_suffix in correct_words_list for neighbor in neighbors):
                 return True
     return False
+
+def is_deletion(word, correct_words_list):
+    word = word.lower()
+    if correct_words_list != spell:
+        correct_words_list = set(w.lower() for w in correct_words_list)
+    alphabet = string.ascii_lowercase
+    for i in range(len(word) + 1):
+        for char in alphabet:
+            candidate = word[:i] + char + word[i:]
+            if candidate in correct_words_list:
+                return True
+    return False
     
+def is_insertion_or_replication(word, correct_words_list):
+    for i in range(len(word)):
+        candidate = word[:i] + word[i+1:]
+        if candidate in correct_words_list:
+            return True
+    return False    
 
 def has_linguistic_misspelling_pattern(word, correct_words_list):
     word = word.lower()
