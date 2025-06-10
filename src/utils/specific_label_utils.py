@@ -73,6 +73,9 @@ def is_key_error(word, correct_words_list):
     return False
 
 def is_deletion(word, correct_words_list):
+    word = word.lower()
+    if correct_words_list != spell:
+        correct_words_list = set(w.lower() for w in correct_words_list)
     alphabet = string.ascii_lowercase
     for i in range(len(word) + 1):
         for char in alphabet:

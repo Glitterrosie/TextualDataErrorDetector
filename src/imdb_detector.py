@@ -127,7 +127,7 @@ class IMDBDetector(Detector):
     def _label_cast_note_person_note_transpositions(self):
         """
         The cast_note and person_note columns have transpositions. The rule we found (which does not hold in all cases) is that
-        the cast_note is round braces, while the person_note is only sometimes
+        the cast_note is round braces, while the person_note is only sometimes in braces.
         """
         person_note_in_braces = self.dataset[self.dataset['person_note'].str.startswith('(') & self.dataset['person_note'].str.endswith(')')]
         self._label_word_transpositions(column_names=["cast_note", "person_note"], row_indices=person_note_in_braces.index)
@@ -135,7 +135,7 @@ class IMDBDetector(Detector):
     def _label_cast_id_cast_person_id_transpositions(self):
         """
         The cast_id and cast_person_id columns have transpositions. cast_id always has 8 digits, cast_person_id always has 7 or less digits. 
-        Therefore if cast_id has 7 digits, it was probably switched
+        Therefore if cast_id has 7 digits, it was probably switched.
         """
         both_numeric = self.dataset[self.dataset['cast_id'].apply(is_a_number) & self.dataset['cast_person_id'].apply(is_a_number)]
         rainfall_contains_153712 = both_numeric[both_numeric['cast_id'].astype(str).str.len() != 8]
