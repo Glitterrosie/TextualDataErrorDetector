@@ -4,7 +4,7 @@ import pandas as pd
 
 from detector import Detector
 from error_types import ErrorType
-from utils.generic_label_utils import check_with_spelling_library, is_not_a_number
+from utils.generic_label_utils import check_with_spelling_library, is_not_a_number, is_a_number
 from utils.specific_label_utils import (
     differentiate_errors_in_categorical_columns,
     set_all_labels_to_ocr,
@@ -21,6 +21,7 @@ class IMDBDetector(Detector):
 
         super().detect() 
         self._label_cast_note_person_note_transpositions()
+        self._label_cast_id_cast_person_id_transpositions()
 
     def get_column_generic_label_mapping(self) -> dict:
         return {
@@ -130,3 +131,12 @@ class IMDBDetector(Detector):
         """
         person_note_in_braces = self.dataset[self.dataset['person_note'].str.startswith('(') & self.dataset['person_note'].str.endswith(')')]
         self._label_word_transpositions(column_names=["cast_note", "person_note"], row_indices=person_note_in_braces.index)
+ 
+    def _label_cast_id_cast_person_id_transpositions(self):
+        """
+        The cast_id and cast_person_id columns have transpositions. cast_id always has 8 digits, cast_person_id always has 7 or less digits. 
+        Therefore if cast_id has 7 digits, it was probably switched
+        """
+        both_numeric = self.dataset[self.dataset['cast_id'].apply(is_a_number) & self.dataset['cast_person_id'].apply(is_a_number)]
+        rainfall_contains_153712 = both_numeric[both_numeric['cast_id'].astype(str).str.len() != 8]
+        self._label_word_transpositions(column_names=["cast_id", "cast_person_id"], row_indices=rainfall_contains_153712.index)
