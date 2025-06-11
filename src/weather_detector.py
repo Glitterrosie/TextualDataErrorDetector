@@ -8,7 +8,7 @@ from utils.generic_label_utils import (
     is_not_a_number,
 )
 from utils.specific_label_utils import (
-    differentiate_errors_in_categorical_columns,
+    differentiate_errors_in_string_column,
     no_labels,
     set_all_labels_to_ocr,
 )
@@ -105,12 +105,12 @@ class WeatherDetector(Detector):
         }
 
     def get_column_specific_label_mapping(self) -> dict:
-        wind_dir_function = partial(differentiate_errors_in_categorical_columns, categorical_values=VALID_WIND_DIRECTIONS)
-        yes_no_function = partial(differentiate_errors_in_categorical_columns, categorical_values=["Yes", "No"])
+        wind_dir_function = partial(differentiate_errors_in_string_column, categorical_values=VALID_WIND_DIRECTIONS)
+        yes_no_function = partial(differentiate_errors_in_string_column, categorical_values=["Yes", "No"])
 
         return {
             "Date": set_all_labels_to_ocr,
-            "Location": differentiate_errors_in_categorical_columns,
+            "Location": differentiate_errors_in_string_column,
             "MinTemp": set_all_labels_to_ocr,
             "MaxTemp": set_all_labels_to_ocr,
             "Rainfall": set_all_labels_to_ocr,

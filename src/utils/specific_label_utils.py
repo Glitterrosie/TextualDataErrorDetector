@@ -20,7 +20,7 @@ def set_all_labels_to_ocr(data_column: pd.Series, generic_labeled_cell_indices: 
     label_column.loc[generic_labeled_cell_indices] = ErrorType.OCR.value
     return label_column
 
-def differentiate_errors_in_categorical_columns(data_column: pd.Series, generic_labeled_cell_indices: pd.Index, generic_labeled_dataset: pd.DataFrame, categorical_values: list[str] = None) -> pd.Series:
+def differentiate_errors_in_string_column(data_column: pd.Series, generic_labeled_cell_indices: pd.Index, generic_labeled_dataset: pd.DataFrame, categorical_values: list[str] = None) -> pd.Series:
     label_column = pd.Series(0, index=data_column.index, dtype=int)
     flawed_words_series = generic_labeled_dataset.loc[generic_labeled_cell_indices]
     unique_flawed_words = flawed_words_series.unique()
@@ -51,7 +51,7 @@ def differentiate_errors_in_categorical_columns(data_column: pd.Series, generic_
 
     return label_column
 
-def differentiate_errors_in_number_columns(data_column: pd.Series, generic_labeled_cell_indices: pd.Index, generic_labeled_dataset: pd.DataFrame, label_func: callable) -> pd.Series:
+def differentiate_errors_in_number_column(data_column: pd.Series, generic_labeled_cell_indices: pd.Index, generic_labeled_dataset: pd.DataFrame, label_func: callable) -> pd.Series:
     """
     This function applies a specific labeling function to differentiate errors in number columns.
     Parameters:
@@ -76,7 +76,6 @@ def differentiate_errors_in_number_columns(data_column: pd.Series, generic_label
             label_column.loc[index] = typo_word_map[word]
 
     return label_column
-
 
 def is_transposition(word, correct_words_list):
     for i in range(len(word) - 1):

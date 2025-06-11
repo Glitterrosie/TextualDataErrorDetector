@@ -11,8 +11,8 @@ from utils.generic_label_utils import (
     is_a_number,
 )
 from utils.specific_label_utils import (
-    differentiate_errors_in_categorical_columns,
-    differentiate_errors_in_number_columns,
+    differentiate_errors_in_string_column,
+    differentiate_errors_in_number_column,
     label_year,
     set_all_labels_to_ocr,
 )
@@ -64,17 +64,17 @@ class IMDBDetector(Detector):
             "cast_id": set_all_labels_to_ocr,
             "cast_person_id": set_all_labels_to_ocr,
             "cast_movie_id": set_all_labels_to_ocr,
-            "cast_person_role_id": differentiate_errors_in_categorical_columns,
-            "cast_note": differentiate_errors_in_categorical_columns,
+            "cast_person_role_id": differentiate_errors_in_string_column,
+            "cast_note": differentiate_errors_in_string_column,
             "cast_nr_order": set_all_labels_to_ocr,
             "cast_role_id": set_all_labels_to_ocr,
             "person_id": set_all_labels_to_ocr,
-            "person_movie_id": differentiate_errors_in_categorical_columns,
+            "person_movie_id": differentiate_errors_in_string_column,
             "person_info_type_id": set_all_labels_to_ocr,
-            "extra_info": differentiate_errors_in_categorical_columns,
-            "person_note": differentiate_errors_in_categorical_columns,
+            "extra_info": differentiate_errors_in_string_column,
+            "person_note": differentiate_errors_in_string_column,
             "title_id": set_all_labels_to_ocr,
-            "title": differentiate_errors_in_categorical_columns,
+            "title": differentiate_errors_in_string_column,
             "imdb_index": set_all_labels_to_ocr,
             "kind_id": set_all_labels_to_ocr,
             "production_year": set_all_labels_to_ocr, # although we could check for valid years, we found that all wrong values in this colun are actually OCRs
@@ -82,7 +82,7 @@ class IMDBDetector(Detector):
             "episode_of_id": set_all_labels_to_ocr,
             "season_nr": set_all_labels_to_ocr,
             "episode_nr": set_all_labels_to_ocr,
-            "series_years": partial(differentiate_errors_in_number_columns, label_func=label_year),
+            "series_years": partial(differentiate_errors_in_number_column, label_func=label_year),
             "md5sum": set_all_labels_to_ocr,
             "name": set_all_labels_to_ocr, # we checked manually, all unique values in this column are due to OCR errors
         }
