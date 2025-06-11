@@ -5,7 +5,11 @@ import pandas as pd
 
 from detector import Detector
 from error_types import ErrorType
-from utils.generic_label_utils import check_with_spelling_library, is_not_a_number, is_a_number
+from utils.generic_label_utils import (
+    check_with_spelling_library,
+    is_not_a_number,
+    is_a_number,
+)
 from utils.specific_label_utils import (
     differentiate_errors_in_categorical_columns,
     differentiate_errors_in_number_columns,
@@ -115,7 +119,7 @@ class IMDBDetector(Detector):
 
     def is_not_a_production_year(self, value: str) -> bool:
         """
-        Check if a string is not a production year (4-digit number).
+        Check if a string is not a production year (4-digit number) in format YYYY.0.
         """
         tokens = self.tokenizer.tokenize_cell(value)
         if not tokens[0].isdigit() or len(tokens[0]) != 4:

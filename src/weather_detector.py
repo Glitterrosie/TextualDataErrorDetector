@@ -174,4 +174,3 @@ class WeatherDetector(Detector):
             return value if pressure < 950 or pressure > 1050 else False
         except ValueError:
             return value
-
