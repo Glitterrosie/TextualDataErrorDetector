@@ -234,16 +234,25 @@ def has_linguistic_misspelling_pattern(word, correct_words_list):
                     return pattern_type
     return None
 
-def label_year(token: str) -> int:
+
+#  --- More specific labeling functions ---
+
+def label_year(token: str, min_value: float = None, max_value: float = None) -> int:
     """
     Distinguish different types of errors in a year token.
     """
+    if min_value is None:
+        min_value = 1880
+    if max_value is None:
+        max_value = 2025
+
     token = token.lower()
     if len(token) != 4: # cases like 20213 or 203
         return ErrorType.TYPO.value
     
-    string_years = [str(i) for i in range(1880, 2025)]
+    string_years = [str(i) for i in range(min_value, max_value)]
     if is_key_error(token, string_years): # case of exactly 4 numbers
         return ErrorType.TYPO.value
 
     return ErrorType.OCR.value # otherwise assume it's OCR
+
