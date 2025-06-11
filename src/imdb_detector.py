@@ -119,7 +119,7 @@ class IMDBDetector(Detector):
 
     def is_not_a_production_year(self, value: str) -> bool:
         """
-        Check if a string is not a production year (4-digit number).
+        Check if a string is not a production year (4-digit number) in format YYYY.0.
         """
         tokens = self.tokenizer.tokenize_cell(value)
         if not tokens[0].isdigit() or len(tokens[0]) != 4:
