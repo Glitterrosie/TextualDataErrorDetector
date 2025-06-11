@@ -4,12 +4,12 @@ import pandas as pd
 import string
 from spellchecker import SpellChecker
 
-from constants import KEYBOARD_NEIGHBORS, MISSPELLING_PATTERNS
+from constants import KEYBOARD_NEIGHBORS, MISSPELLING_PATTERNS, get_misspellings_list
 from error_types import ErrorType
 from tokenizer import Tokenizer
 
+MISSPELLINGS_LIST = get_misspellings_list()
 tokenizer = Tokenizer()
-
 spell = SpellChecker()
 
 def no_labels(data_column: pd.Series, generic_labeled_cell_indices: pd.Index, generic_labeled_dataset: pd.DataFrame) -> pd.Series:
@@ -30,7 +30,9 @@ def differentiate_errors_in_string_column(data_column: pd.Series, generic_labele
     typo_word_map = {}
 
     for word in unique_flawed_words:
-        if is_transposition(word, correct_words_list):
+        if is_misspelling(word, correct_words_list):
+            typo_word_map[word] = ErrorType.MISSPELLING.value
+        elif is_transposition(word, correct_words_list):
             typo_word_map[word] = ErrorType.TYPO.value
         elif is_key_error(word, correct_words_list):
             typo_word_map[word] = ErrorType.TYPO.value
@@ -116,6 +118,11 @@ def is_insertion_or_replication(word, correct_words_list):
         if candidate in correct_words_list:
             return True
     return False    
+
+def is_misspelling(word, correct_words_list):
+    if word in MISSPELLINGS_LIST and not word in correct_words_list:
+        return True
+    return False
 
 def has_linguistic_misspelling_pattern(word, correct_words_list):
     word = word.lower()

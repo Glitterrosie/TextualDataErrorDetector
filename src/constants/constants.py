@@ -170,3 +170,7 @@ OCR_CHARACTER_CONFUSIONS = {
     '!': '.',
     'j': '.',
 }
+
+def get_misspellings_list():
+    with open('/src/constants/misspellings', 'r') as f:
+        return f.read().splitlines()
