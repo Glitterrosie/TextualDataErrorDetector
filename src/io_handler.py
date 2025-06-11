@@ -5,6 +5,30 @@ import pandas as pd
 
 from error_types import ErrorType
 
+positives = {
+    "imdb_subset1_group1_w_errors":
+        {
+        "typos": 240833,
+        "misspellings": 215062,
+        "ocrs": 196447,
+        "transpositions": 0 # no numbers yet
+        },
+    "weather_subset1_group1_w_errors":
+        {
+        "typos": 18847,
+        "misspellings": 0,
+        "ocrs": 38899,
+        "transpositions": 73538
+        },
+    "medical_subset1_group1_w_errors":
+        {
+        "typos": 14927,
+        "misspellings": 22575,
+        "ocrs": 43957,
+        "transpositions": 0 # no numbers yet
+        },
+}
+
 
 class IOHandler():
     def __init__(self, dataset_path):
@@ -19,7 +43,6 @@ class IOHandler():
 
 
     def export_labels(self, labels: pd.DataFrame):
-        self._print_percentage_of_labeled_cells(labels)
 
         output_folder = os.path.dirname(self.dataset_path)
         if not os.path.exists(output_folder):
@@ -34,8 +57,10 @@ class IOHandler():
         labels_output_path = os.path.join(output_folder, f"{labels_base_name}{ext}")
         labels.to_csv(labels_output_path, index=False)
 
+        self._print_percentage_of_labeled_cells(labels, base_name)
 
-    def _print_percentage_of_labeled_cells(self, labels: pd.DataFrame) -> float:
+
+    def _print_percentage_of_labeled_cells(self, labels: pd.DataFrame, base_name: str) -> float:
         """
         Returns the percentage of polluted cells in the dataset.
         """
@@ -47,12 +72,17 @@ class IOHandler():
         num_labeled_cells = num_typos + num_misspellings + num_ocrs + num_word_transpositions
         num_labeled_rows = labels.ne(0).any(axis=1).sum()
 
-        print(f"Number of labeled cells: {num_labeled_cells}, Number of labeled rows: {num_labeled_rows}")
+        true_typos = positives[base_name]["typos"]
+        true_misspellings = positives[base_name]["misspellings"]
+        true_ocrs = positives[base_name]["ocrs"]
+        true_transpositions = positives[base_name]["transpositions"]
+
+        print(f"Number of labeled cells: {num_labeled_cells}, Number of labeled rows: {num_labeled_rows}.")
         print(f"Percentage of polluted cells: \t\t{num_labeled_cells / total_cells * 100:.2f}%")
-        print(f"Percentage of typo cells: \t\t{num_typos / total_cells * 100:.2f}%")
-        print(f"Percentage of misspelling cells: \t{num_misspellings / total_cells * 100:.2f}%")
-        print(f"Percentage of OCR cells: \t\t{num_ocrs / total_cells * 100:.2f}%")
-        print(f"Percentage of transposition cells: \t{num_word_transpositions / total_cells * 100:.2f}%\n\n")
+        print(f"Percentage of typo cells: \t\t{num_typos / total_cells * 100:.2f}%. \tTotal of {num_typos}/{true_typos} labeled.")
+        print(f"Percentage of misspelling cells: \t{num_misspellings / total_cells * 100:.2f}%. \tTotal of {num_misspellings}/{true_misspellings} labeled.")
+        print(f"Percentage of OCR cells: \t\t{num_ocrs / total_cells * 100:.2f}%. \tTotal of {num_ocrs}/{true_ocrs} labeled.")
+        print(f"Percentage of transposition cells: \t{num_word_transpositions / total_cells * 100:.2f}%. \tTotal of {num_word_transpositions}/{true_transpositions} labeled.\n\n")
 
 
     def save_pickled_dataset(self, dataset: pd.DataFrame):
