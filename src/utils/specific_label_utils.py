@@ -36,12 +36,12 @@ def differentiate_errors_in_string_column(data_column: pd.Series, generic_labele
             typo_word_map[word] = ErrorType.TYPO.value
         elif is_key_error(word, correct_words_list):
             typo_word_map[word] = ErrorType.TYPO.value
-        elif is_deletion(word, correct_words_list):
-            typo_word_map[word] = ErrorType.TYPO.value
         elif is_insertion_or_replication(word, correct_words_list):
             typo_word_map[word] = ErrorType.TYPO.value
         elif has_linguistic_misspelling_pattern(word, correct_words_list):
             typo_word_map[word] = ErrorType.MISSPELLING.value
+        elif is_deletion(word, correct_words_list):
+            typo_word_map[word] = ErrorType.TYPO.value
         else:
             typo_word_map[word] = ErrorType.OCR.value
 
@@ -104,12 +104,18 @@ def is_deletion(word, correct_words_list):
     word = word.lower()
     if correct_words_list != spell:
         correct_words_list = set(w.lower() for w in correct_words_list)
-    alphabet = string.ascii_lowercase
+
     for i in range(len(word) + 1):
-        for char in alphabet:
-            candidate = word[:i] + char + word[i:]
-            if candidate in correct_words_list:
+        for char in (string.ascii_lowercase):
+            candidates = word[:i] + char + word[i:]
+            if all(candidate in correct_words_list for candidate in candidates.split()):
                 return True
+        
+    # we need this extra loop to not make an early return and test seperatly for whitespaces
+    for i in range(len(word) + 1):
+        candidates = word[:i] + ' ' + word[i:]
+        if all(candidate in correct_words_list for candidate in candidates.split()):
+            return True
     return False
     
 def is_insertion_or_replication(word, correct_words_list):
@@ -117,7 +123,7 @@ def is_insertion_or_replication(word, correct_words_list):
         candidate = word[:i] + word[i+1:]
         if candidate in correct_words_list:
             return True
-    return False    
+    return False
 
 def is_misspelling(word, correct_words_list):
     if word in MISSPELLINGS_LIST and not word in correct_words_list:
