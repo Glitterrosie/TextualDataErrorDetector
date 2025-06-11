@@ -3,7 +3,7 @@ from functools import partial
 from detector import Detector
 from utils.generic_label_utils import check_with_spelling_library, is_not_a_number
 from utils.specific_label_utils import (
-    differentiate_errors_in_categorical_columns,
+    differentiate_errors_in_string_column,
     set_all_labels_to_ocr,
 )
 
@@ -79,12 +79,12 @@ class MedicalDetector(Detector):
 
     def get_column_specific_label_mapping(self) -> dict:
         # TODO: using a categorical_values_list greatly DECREASES the number of typos and misspelings and INCREASES the number of OCR errors, check if this is correct
-        no_steady_up_down_func = partial(differentiate_errors_in_categorical_columns, categorical_values_list=['No', 'Steady', 'Up', 'Down'])
+        no_steady_up_down_func = partial(differentiate_errors_in_string_column, categorical_values=['No', 'Steady', 'Up', 'Down'])
 
         return {
             "encounter_id": set_all_labels_to_ocr,
             "patient_nbr": set_all_labels_to_ocr,
-            "race": differentiate_errors_in_categorical_columns,
+            "race": differentiate_errors_in_string_column,
             "gender": set_all_labels_to_ocr, # we checked manually that all values are caused by OCR errors
             "age": set_all_labels_to_ocr,
             "weight": set_all_labels_to_ocr,
@@ -93,7 +93,7 @@ class MedicalDetector(Detector):
             "admission_source_id": set_all_labels_to_ocr,
             "time_in_hospital": set_all_labels_to_ocr,
             "payer_code": set_all_labels_to_ocr, # we checked manually that all values that are not 'MC' are caused by OCR errors
-            "medical_specialty": differentiate_errors_in_categorical_columns,
+            "medical_specialty": differentiate_errors_in_string_column,
             "num_lab_procedures": set_all_labels_to_ocr,
             "num_procedures": set_all_labels_to_ocr,
             "num_medications": set_all_labels_to_ocr,
@@ -101,11 +101,11 @@ class MedicalDetector(Detector):
             "number_emergency": set_all_labels_to_ocr,
             "number_inpatient": set_all_labels_to_ocr,
             "diag_1": set_all_labels_to_ocr,
-            "diag_2": differentiate_errors_in_categorical_columns,
-            "diag_3": differentiate_errors_in_categorical_columns,
-            "number_diagnoses": differentiate_errors_in_categorical_columns,
-            "max_glu_serum": differentiate_errors_in_categorical_columns,
-            "A1Cresult": differentiate_errors_in_categorical_columns,
+            "diag_2": differentiate_errors_in_string_column,
+            "diag_3": differentiate_errors_in_string_column,
+            "number_diagnoses": differentiate_errors_in_string_column,
+            "max_glu_serum": differentiate_errors_in_string_column,
+            "A1Cresult": differentiate_errors_in_string_column,
             "metformin": no_steady_up_down_func, 
             "nateglinide": no_steady_up_down_func,
             "repaglinide": no_steady_up_down_func,
@@ -129,12 +129,12 @@ class MedicalDetector(Detector):
             "glimepiride-pioglitazone": no_steady_up_down_func,
             "metformin-rosiglitazone": no_steady_up_down_func,
             "metformin-pioglitazone": no_steady_up_down_func,
-            "change": differentiate_errors_in_categorical_columns,
-            "diabetesMed": differentiate_errors_in_categorical_columns,
-            "readmitted": differentiate_errors_in_categorical_columns,
-            "admission_type_desc": differentiate_errors_in_categorical_columns,
-            "admission_source_desc": differentiate_errors_in_categorical_columns,
-            "discharge_disposition_desc": differentiate_errors_in_categorical_columns,
+            "change": differentiate_errors_in_string_column,
+            "diabetesMed": differentiate_errors_in_string_column,
+            "readmitted": differentiate_errors_in_string_column,
+            "admission_type_desc": differentiate_errors_in_string_column,
+            "admission_source_desc": differentiate_errors_in_string_column,
+            "discharge_disposition_desc": differentiate_errors_in_string_column,
         }
     
     def _check_payer_code_is_MC(self, payer_code: str) -> bool:

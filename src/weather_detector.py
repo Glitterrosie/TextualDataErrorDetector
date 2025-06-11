@@ -1,3 +1,5 @@
+from functools import partial
+
 from detector import Detector
 from utils.generic_label_utils import (
     check_with_spelling_library,
@@ -6,10 +8,15 @@ from utils.generic_label_utils import (
     is_not_a_number,
 )
 from utils.specific_label_utils import (
-    differentiate_errors_in_categorical_columns,
+    differentiate_errors_in_string_column,
     no_labels,
     set_all_labels_to_ocr,
 )
+
+VALID_WIND_DIRECTIONS = {
+    "N", "NNE", "NE", "ENE", "E", "ESE", "SE", "SSE",
+    "S", "SSW", "SW", "WSW", "W", "WNW", "NW", "NNW"
+}
 
 
 class WeatherDetector(Detector):
@@ -79,49 +86,52 @@ class WeatherDetector(Detector):
             "Rainfall": is_not_a_number,
             "Evaporation":is_not_a_number,
             "Sunshine": is_not_a_number,
-            "WindGustDir":  check_with_spelling_library,
+            "WindGustDir":  self._is_not_valid_wind_dir,
             "WindGustSpeed": is_not_a_number,
-            "WindDir9am": check_with_spelling_library,
-            "WindDir3pm": check_with_spelling_library,
+            "WindDir9am": self._is_not_valid_wind_dir,
+            "WindDir3pm": self._is_not_valid_wind_dir,
             "WindSpeed9am": is_not_a_number,
             "WindSpeed3pm": is_not_a_number,
             "Humidity9am": is_not_a_number,
             "Humidity3pm": is_not_a_number,
-            "Pressure9am": is_not_a_number,
-            "Pressure3pm": is_not_a_number,
+            "Pressure9am": self._is_not_valid_pressure,
+            "Pressure3pm": self._is_not_valid_pressure,
             "Cloud9am": is_not_a_number,
             "Cloud3pm": is_not_a_number,
             "Temp9am": is_not_a_number,
             "Temp3pm": is_not_a_number,
-            "RainToday": check_with_spelling_library,
-            "RainTomorrow": check_with_spelling_library,
+            "RainToday": self._is_not_yes_no,
+            "RainTomorrow": self._is_not_yes_no,
         }
 
     def get_column_specific_label_mapping(self) -> dict:
+        wind_dir_function = partial(differentiate_errors_in_string_column, categorical_values=VALID_WIND_DIRECTIONS)
+        yes_no_function = partial(differentiate_errors_in_string_column, categorical_values=["Yes", "No"])
+
         return {
             "Date": set_all_labels_to_ocr,
-            "Location": differentiate_errors_in_categorical_columns,
+            "Location": differentiate_errors_in_string_column,
             "MinTemp": set_all_labels_to_ocr,
             "MaxTemp": set_all_labels_to_ocr,
             "Rainfall": set_all_labels_to_ocr,
             "Evaporation": set_all_labels_to_ocr,
             "Sunshine": set_all_labels_to_ocr,
-            "WindGustDir": differentiate_errors_in_categorical_columns,
+            "WindGustDir": wind_dir_function,
             "WindGustSpeed": set_all_labels_to_ocr,
-            "WindDir9am": differentiate_errors_in_categorical_columns,
-            "WindDir3pm": differentiate_errors_in_categorical_columns,
+            "WindDir9am": wind_dir_function,
+            "WindDir3pm": wind_dir_function,
             "WindSpeed9am": set_all_labels_to_ocr,
             "WindSpeed3pm": set_all_labels_to_ocr,
             "Humidity9am": set_all_labels_to_ocr,
             "Humidity3pm": set_all_labels_to_ocr,
-            "Pressure9am": set_all_labels_to_ocr,
+            "Pressure9am": set_all_labels_to_ocr, # TODO: do not set all to OCR, but also check for typos
             "Pressure3pm": set_all_labels_to_ocr,
             "Cloud9am": set_all_labels_to_ocr,
             "Cloud3pm": set_all_labels_to_ocr,
             "Temp9am": set_all_labels_to_ocr,
             "Temp3pm": set_all_labels_to_ocr,
-            "RainToday": differentiate_errors_in_categorical_columns,
-            "RainTomorrow": differentiate_errors_in_categorical_columns,
+            "RainToday": yes_no_function,
+            "RainTomorrow": yes_no_function,
         }
 
     def _is_not_a_valid_date(self, value: str) -> bool:
@@ -141,3 +151,26 @@ class WeatherDetector(Detector):
             return True
         return False
 
+    def _is_not_valid_wind_dir(self, value: str) -> bool:
+        """
+        Check if the wind gust direction is not a valid direction.
+        Valid directions are: N, NNE, NE, ENE, E, ESE, SE, SSE, S, SSW, SW, WSW, W, WNW, NW, NNW.
+        """
+        return value if value not in VALID_WIND_DIRECTIONS else False
+
+    def _is_not_yes_no(self, value: str) -> bool:
+        """
+        Check if the value is not 'Yes' or 'No'.
+        """
+        return value if value not in ["Yes", "No"] else False
+
+    def _is_not_valid_pressure(self, value: str) -> bool:
+        """
+        Check if the value is not a valid pressure.
+        A valid pressure is a number between 950 and 1050.
+        """
+        try:
+            pressure = float(value)
+            return value if pressure < 950 or pressure > 1050 else False
+        except ValueError:
+            return value
