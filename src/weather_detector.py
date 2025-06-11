@@ -3,13 +3,12 @@ from functools import partial
 from detector import Detector
 from utils.generic_label_utils import (
     check_with_spelling_library,
-    empty_method,
     is_a_number,
     is_not_a_number,
 )
 from utils.specific_label_utils import (
+    differentiate_errors_in_number_column,
     differentiate_errors_in_string_column,
-    no_labels,
     set_all_labels_to_ocr,
 )
 
@@ -105,32 +104,30 @@ class WeatherDetector(Detector):
         }
 
     def get_column_specific_label_mapping(self) -> dict:
-        wind_dir_function = partial(differentiate_errors_in_string_column, categorical_values=VALID_WIND_DIRECTIONS)
-
         return {
             "Date": set_all_labels_to_ocr,
             "Location": differentiate_errors_in_string_column,
-            "MinTemp": set_all_labels_to_ocr,
-            "MaxTemp": set_all_labels_to_ocr,
-            "Rainfall": set_all_labels_to_ocr,
-            "Evaporation": set_all_labels_to_ocr,
-            "Sunshine": set_all_labels_to_ocr,
-            "WindGustDir": set_all_labels_to_ocr, # we checked manually that all unique values are caused by OCR errors
-            "WindGustSpeed": set_all_labels_to_ocr,
-            "WindDir9am": set_all_labels_to_ocr, # we checked manually that all unique values are caused by OCR errors
-            "WindDir3pm": set_all_labels_to_ocr, # we checked manually that all unique values are caused by OCR errors
-            "WindSpeed9am": set_all_labels_to_ocr,
-            "WindSpeed3pm": set_all_labels_to_ocr,
-            "Humidity9am": set_all_labels_to_ocr,
-            "Humidity3pm": set_all_labels_to_ocr,
-            "Pressure9am": set_all_labels_to_ocr, # TODO: do not set all to OCR, but also check for typos
-            "Pressure3pm": set_all_labels_to_ocr,
-            "Cloud9am": set_all_labels_to_ocr,
-            "Cloud3pm": set_all_labels_to_ocr,
-            "Temp9am": set_all_labels_to_ocr,
-            "Temp3pm": set_all_labels_to_ocr,
-            "RainToday": set_all_labels_to_ocr, # we checked manually that all unique values are caused by OCR errors
-            "RainTomorrow": set_all_labels_to_ocr, # we checked manually that all unique values are caused by OCR errors
+            "MinTemp": differentiate_errors_in_number_column,
+            "MaxTemp": differentiate_errors_in_number_column,
+            "Rainfall": differentiate_errors_in_number_column,
+            "Evaporation": differentiate_errors_in_number_column,
+            "Sunshine": differentiate_errors_in_number_column,
+            "WindGustDir": set_all_labels_to_ocr,                       # Manual check -> all OCRs
+            "WindGustSpeed": differentiate_errors_in_number_column,
+            "WindDir9am": set_all_labels_to_ocr,                        # Manual check -> all OCRs
+            "WindDir3pm": set_all_labels_to_ocr,                        # Manual check -> all OCRs
+            "WindSpeed9am": differentiate_errors_in_number_column,
+            "WindSpeed3pm": differentiate_errors_in_number_column,
+            "Humidity9am": differentiate_errors_in_number_column,
+            "Humidity3pm": differentiate_errors_in_number_column,
+            "Pressure9am": set_all_labels_to_ocr,                       # when running the differentiate_errors_in_number_column method, we found that all values which were labeled as typos were actually OCRs
+            "Pressure3pm": set_all_labels_to_ocr,                       # when running the differentiate_errors_in_number_column method, we found that all values which were labeled as typos were actually OCRs
+            "Cloud9am": differentiate_errors_in_number_column,
+            "Cloud3pm": differentiate_errors_in_number_column,
+            "Temp9am": differentiate_errors_in_number_column,
+            "Temp3pm": differentiate_errors_in_number_column,
+            "RainToday": set_all_labels_to_ocr,                         # Manual check -> all OCRs
+            "RainTomorrow": set_all_labels_to_ocr,                      # Manual check -> all OCRs
         }
 
     def _is_not_a_valid_date(self, value: str) -> bool:
