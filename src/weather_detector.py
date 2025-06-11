@@ -106,7 +106,6 @@ class WeatherDetector(Detector):
 
     def get_column_specific_label_mapping(self) -> dict:
         wind_dir_function = partial(differentiate_errors_in_string_column, categorical_values=VALID_WIND_DIRECTIONS)
-        yes_no_function = partial(differentiate_errors_in_string_column, categorical_values=["Yes", "No"])
 
         return {
             "Date": set_all_labels_to_ocr,
@@ -116,10 +115,10 @@ class WeatherDetector(Detector):
             "Rainfall": set_all_labels_to_ocr,
             "Evaporation": set_all_labels_to_ocr,
             "Sunshine": set_all_labels_to_ocr,
-            "WindGustDir": wind_dir_function,
+            "WindGustDir": set_all_labels_to_ocr, # we checked manually that all unique values are caused by OCR errors
             "WindGustSpeed": set_all_labels_to_ocr,
-            "WindDir9am": wind_dir_function,
-            "WindDir3pm": wind_dir_function,
+            "WindDir9am": set_all_labels_to_ocr, # we checked manually that all unique values are caused by OCR errors
+            "WindDir3pm": set_all_labels_to_ocr, # we checked manually that all unique values are caused by OCR errors
             "WindSpeed9am": set_all_labels_to_ocr,
             "WindSpeed3pm": set_all_labels_to_ocr,
             "Humidity9am": set_all_labels_to_ocr,
@@ -130,8 +129,8 @@ class WeatherDetector(Detector):
             "Cloud3pm": set_all_labels_to_ocr,
             "Temp9am": set_all_labels_to_ocr,
             "Temp3pm": set_all_labels_to_ocr,
-            "RainToday": yes_no_function,
-            "RainTomorrow": yes_no_function,
+            "RainToday": set_all_labels_to_ocr, # we checked manually that all unique values are caused by OCR errors
+            "RainTomorrow": set_all_labels_to_ocr, # we checked manually that all unique values are caused by OCR errors
         }
 
     def _is_not_a_valid_date(self, value: str) -> bool:
