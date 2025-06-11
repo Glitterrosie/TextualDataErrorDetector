@@ -23,7 +23,7 @@ class MedicalDetector(Detector):
         return {
             "encounter_id": is_not_a_number,
             "patient_nbr": is_not_a_number,
-            "race": check_with_spelling_library,
+            "race": self._is_not_a_valid_race,
             "gender": check_with_spelling_library,
             "age": is_not_a_number,
             "weight": is_not_a_number,
@@ -84,7 +84,7 @@ class MedicalDetector(Detector):
         return {
             "encounter_id": set_all_labels_to_ocr,
             "patient_nbr": set_all_labels_to_ocr,
-            "race": differentiate_errors_in_string_column,
+            "race": set_all_labels_to_ocr, # we checked manually that all unique values are caused by OCR errors
             "gender": set_all_labels_to_ocr, # we checked manually that all values are caused by OCR errors
             "age": set_all_labels_to_ocr,
             "weight": set_all_labels_to_ocr,
@@ -152,6 +152,13 @@ class MedicalDetector(Detector):
         if not str(word).strip() in ['No', 'Steady', 'Up', 'Down']:
             return word
         return 0
+
+    def _is_not_a_valid_race(self, race: str) -> bool:
+        """
+        Check if the race is not a valid race.
+        It returns 1, if the race is not a valid race, otherwise it returns 0.
+        """
+        return not str(race).strip() in ['Caucasian', 'AfricanAmerican', 'Asian', 'Hispanic', 'Other']
 
     def _label_diabetesMed_change_transpositions(self):
         """
