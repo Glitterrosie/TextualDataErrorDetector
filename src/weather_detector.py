@@ -72,7 +72,7 @@ class WeatherDetector(Detector):
 
     def get_column_generic_label_mapping(self) -> dict:
         return {
-            "Date": empty_method,
+            "Date": self._is_not_a_valid_date,
             "Location": check_with_spelling_library,
             "MinTemp": is_not_a_number,
             "MaxTemp": is_not_a_number,
@@ -99,7 +99,7 @@ class WeatherDetector(Detector):
 
     def get_column_specific_label_mapping(self) -> dict:
         return {
-            "Date": no_labels,
+            "Date": set_all_labels_to_ocr,
             "Location": differentiate_errors_in_categorical_columns,
             "MinTemp": set_all_labels_to_ocr,
             "MaxTemp": set_all_labels_to_ocr,
@@ -123,3 +123,21 @@ class WeatherDetector(Detector):
             "RainToday": differentiate_errors_in_categorical_columns,
             "RainTomorrow": differentiate_errors_in_categorical_columns,
         }
+
+    def _is_not_a_valid_date(self, value: str) -> bool:
+        """
+        Check if the value is not a valid date.
+        The date is in format "YYYY-MM-DD".
+        """
+        if not isinstance(value, str):
+            return True
+        parts = value.split("-")
+        if len(parts) != 3:
+            return True
+        year, month, day = parts
+        if not (year.isdigit() and month.isdigit() and day.isdigit()):
+            return True
+        if not (1 <= int(month) <= 12 and 1 <= int(day) <= 31):
+            return True
+        return False
+

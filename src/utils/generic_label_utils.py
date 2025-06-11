@@ -32,3 +32,4 @@ def check_with_spelling_library(value: str) -> bool:
         if spell.unknown([token]):
             return token # return the first misspelled token (early return)
     return 0
+
