@@ -29,18 +29,19 @@ class IMDBDetector(Detector):
         super().detect() 
         self._label_cast_note_person_note_transpositions()
         self._label_cast_id_cast_person_id_transpositions()
+        self._label_identical_columns()
 
     def get_column_generic_label_mapping(self) -> dict:
         return {
             "cast_id": is_not_a_number,
             "cast_person_id": is_not_a_number,
             "cast_movie_id": is_not_a_number,
-            "cast_person_role_id": check_with_spelling_library,
+            "cast_person_role_id": self.is_not_a_cast_person_role_id,
             "cast_note": check_with_spelling_library,
             "cast_nr_order": is_not_a_number,
             "cast_role_id": is_not_a_number,
             "person_id": is_not_a_number,
-            "person_movie_id": check_with_spelling_library,
+            "person_movie_id": is_not_a_number,
             "person_info_type_id": is_not_a_number,
             "extra_info": check_with_spelling_library,
             "person_note": check_with_spelling_library,
@@ -64,12 +65,12 @@ class IMDBDetector(Detector):
             "cast_id": set_all_labels_to_ocr,
             "cast_person_id": set_all_labels_to_ocr,
             "cast_movie_id": set_all_labels_to_ocr,
-            "cast_person_role_id": differentiate_errors_in_string_column,
+            "cast_person_role_id": set_all_labels_to_ocr,
             "cast_note": differentiate_errors_in_string_column,
             "cast_nr_order": set_all_labels_to_ocr,
             "cast_role_id": set_all_labels_to_ocr,
             "person_id": set_all_labels_to_ocr,
-            "person_movie_id": differentiate_errors_in_string_column,
+            "person_movie_id": set_all_labels_to_ocr,
             "person_info_type_id": set_all_labels_to_ocr,
             "extra_info": differentiate_errors_in_string_column,
             "person_note": differentiate_errors_in_string_column,
@@ -86,6 +87,16 @@ class IMDBDetector(Detector):
             "md5sum": set_all_labels_to_ocr,
             "name": set_all_labels_to_ocr, # we checked manually, all unique values in this column are due to OCR errors
         }
+    
+    def _label_identical_columns(self):
+        all_numeric = self.dataset[self.dataset['title_id'].apply(is_a_number) & self.dataset['person_movie_id'].apply(is_a_number) & self.dataset['cast_movie_id'].apply(is_a_number)]
+        title_cast_match = all_numeric[(all_numeric['title_id'] != all_numeric['person_movie_id']) & (all_numeric['title_id'] == all_numeric['cast_movie_id'])] # person bad
+        title_person_match = all_numeric[(all_numeric['title_id'] != all_numeric['cast_movie_id']) & (all_numeric['title_id'] == all_numeric['person_movie_id'])] # cast bad
+        cast_person_match = all_numeric[(all_numeric['title_id'] != all_numeric['cast_movie_id']) & (all_numeric['cast_movie_id'] == all_numeric['person_movie_id'])] # title bad
+
+        self.labels.loc[title_cast_match.index, 'person_movie_id'] = ErrorType.OCR.value
+        self.labels.loc[title_person_match.index, 'cast_movie_id'] = ErrorType.OCR.value
+        self.labels.loc[cast_person_match.index, 'title_id'] = ErrorType.OCR.value
 
     def _is_valid_phonetic_code(self, cell: str) -> int:
         """
@@ -127,6 +138,15 @@ class IMDBDetector(Detector):
         if not tokens[1].isdigit():
             return tokens[1]
         return 0
+    
+    def is_not_a_cast_person_role_id(self, value):
+        try:
+            value = float(value)
+            if value != 999999.0:
+                return 1
+            return 0
+        except ValueError:
+            return 1
 
     def _label_phonetic_code(self, data_column: pd.Series, generic_labeled_cell_indices: pd.Index, generic_labeled_dataset) -> pd.Series:
         label_column = pd.Series(0, index=data_column.index, dtype=int)
