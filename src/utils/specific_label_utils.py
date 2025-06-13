@@ -4,7 +4,7 @@ import pandas as pd
 import string
 from spellchecker import SpellChecker
 
-from constants import KEYBOARD_NEIGHBORS, MISSPELLING_PATTERNS, OCR_DICT, get_misspellings_list
+from constants import KEYBOARD_NEIGHBORS, MISSPELLING_PATTERNS, OCR_DICT, OCR_LETTER_TO_NUMBER_MAPPING, OCR_NUMBER_TO_NUMBER_MAPPING, get_misspellings_list
 from error_types import ErrorType
 from tokenizer import Tokenizer
 
@@ -145,7 +145,7 @@ def label_number_with_ocr_or_typo(word: str | int | float, min_value: float = No
     if " " in word:
         return ErrorType.OCR.value
 
-    if is_likely_ocr(word):
+    if has_letter_mapping_to_ocr_number(word):
         return ErrorType.OCR.value
     
     if contains_letter(word): # this covers all letters that are not OCRs (because we already checked for OCR letters), therefore we can label them as typos
@@ -178,39 +178,26 @@ def get_label_for_number_with_0_prefix(word, min_value: float = None, max_value:
         return ErrorType.OCR.value
     return ErrorType.OCR.value
 
-def is_likely_ocr(word: str | int | float):
-    aggregated_ocr_letters = []
-    for key in OCR_DICT.keys():
-        if key.isalpha():
-            aggregated_ocr_letters.append(key)
-    for item in OCR_DICT.values():
-        for replacement in item:
-            if replacement.isalpha():
-                aggregated_ocr_letters.append(replacement)
-
-    for char in word: # we are working on numbers here, so as soon as we find an OCR letter, we return True
-        if char in aggregated_ocr_letters:
+def has_letter_mapping_to_ocr_number(word: str | int | float):
+    for char in word: # check if any letter in the word maps to a number with OCR
+        if char in OCR_LETTER_TO_NUMBER_MAPPING.keys():
             return True
     return False
 
 def is_replaced_ocr_in_range(word: str | int | float, min_value: float, max_value: float):
     """
     This function checks if a word is an OCR and whether the corrected number is within the given range.
-    It uses forward and reverse lookup in OCR_DICT to find all possible OCRs and replacements.
     It replaces all occurences of the OCR with the replacement and checks if the resulting number is within the given range.
+    This function assumes that there are no letters in the word.
     """
     for char in str(word):
-        alternative_ocr = OCR_DICT.get(char)
-        if alternative_ocr: # standard / forward lookup in OCR_DICT
-            for replacement in alternative_ocr:
-                if replacement.isdigit():
-                    if min_value <= float(word.replace(char, replacement)) <= max_value: # this replaces all occurences of the char in the word
-                        return True
-        else: # reverse lookup in OCR_DICT
-            for key, values in OCR_DICT.items():
-                if char in values and key.isdigit():
-                    if min_value <= float(word.replace(char, key)) <= max_value: # this replaces all occurences of the char in the word
-                        return True
+        alternative_numbers = OCR_NUMBER_TO_NUMBER_MAPPING.get(char)
+        if not alternative_numbers: # standard / forward lookup in OCR_NUMBER_TO_NUMBER_MAPPING
+            continue
+
+        for replacement_num in alternative_numbers:
+            if min_value <= float(word.replace(char, replacement_num)) <= max_value: # this replaces all occurences of the char in the word
+                return True
 
     # TODO: We only check for one OCR replacement at a time. This is usually sufficient for cases like 77 in range (0, 30), but there could be cases like 78 in range (0, 10) where we would have to replace both 7 and 8 simultaneously.
     return False
