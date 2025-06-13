@@ -134,12 +134,10 @@ def label_number_with_ocr_or_typo(word: str | int | float, min_value: float = No
     """
     
     word = str(word)
-    if word == 77:
-        print("77 from label_number_with_error")
-    if word[-1] in [".", ",", "-"]: # a number like 8743. that ends with a dot is likely an OCR
+    if word[-1] in [".", ",", "-"]: # we assume a number like 8743. that ends with a . is an OCR, although it could theoretically be a deletion or insertion typo
         return ErrorType.OCR.value
 
-    if word[0] == "0" and word[1] != ".": # a number like 08.1 that starts with a 0 is likely an OCR
+    if word[0] == "0" and word[1] != ".": # we assume a number like 08.1 that starts with a 0 is an OCR, although it could theoretically be a hard to detect typo of 80.1.
         return get_label_for_number_with_0_prefix(word, min_value, max_value)
 
     if " " in word:
