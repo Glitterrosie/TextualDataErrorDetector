@@ -1,5 +1,6 @@
 from functools import partial
 
+from error_types import ErrorType
 from detector import Detector
 from utils.generic_label_utils import (
     check_with_spelling_library,
@@ -33,6 +34,9 @@ class WeatherDetector(Detector):
         self._label_rainfall_evaporation_transpositions()
         self._label_sunshine_evaporation_transpositions()
         self._label_sunshine_rainfall_transpositions()
+
+        # we know there aren't any spelling mistakes in weather, therefore we reset the wrongly labeled words
+        self.labels = self.labels.replace(ErrorType.MISSPELLING.value, ErrorType.NO_ERROR.value)
 
     def _label_temperature_tranpositions(self):
         """
