@@ -1,8 +1,10 @@
 from functools import partial
 
 from detector import Detector
-from utils.generic_label_utils import check_with_spelling_library, is_not_a_number
+from constants import MEDICAL_SPECIALTY_VALUES
+from utils.generic_label_utils import check_with_spelling_library, is_not_a_number, is_not_a_number_in_range
 from utils.specific_label_utils import (
+    differentiate_errors_in_number_column,
     differentiate_errors_in_string_column,
     set_all_labels_to_ocr,
 )
@@ -30,7 +32,7 @@ class MedicalDetector(Detector):
             "admission_type_id": is_not_a_number,
             "discharge_disposition_id": is_not_a_number,
             "admission_source_id": is_not_a_number,
-            "time_in_hospital": is_not_a_number,
+            "time_in_hospital": partial(is_not_a_number_in_range, min_value=0, max_value=30),
             "payer_code": self._check_payer_code_is_MC,
             "medical_specialty": check_with_spelling_library,
             "num_lab_procedures": is_not_a_number,
@@ -80,20 +82,21 @@ class MedicalDetector(Detector):
     def get_column_specific_label_mapping(self) -> dict:
         # TODO: using a categorical_values_list greatly DECREASES the number of typos and misspelings and INCREASES the number of OCR errors, check if this is correct
         no_steady_up_down_func = partial(differentiate_errors_in_string_column, categorical_values=['No', 'Steady', 'Up', 'Down'])
+        medical_specialty_func = partial(differentiate_errors_in_string_column, categorical_values=MEDICAL_SPECIALTY_VALUES)
 
         return {
-            "encounter_id": set_all_labels_to_ocr,
-            "patient_nbr": set_all_labels_to_ocr,
-            "race": set_all_labels_to_ocr, # we checked manually that all unique values are caused by OCR errors
-            "gender": set_all_labels_to_ocr, # we checked manually that all uniquevalues are caused by OCR errors
-            "age": set_all_labels_to_ocr,
-            "weight": set_all_labels_to_ocr,
-            "admission_type_id": set_all_labels_to_ocr,
-            "discharge_disposition_id": set_all_labels_to_ocr,
-            "admission_source_id": set_all_labels_to_ocr,
-            "time_in_hospital": set_all_labels_to_ocr,
-            "payer_code": set_all_labels_to_ocr, # we checked manually that all values that are not 'MC' are caused by OCR errors
-            "medical_specialty": differentiate_errors_in_string_column,
+            "encounter_id": set_all_labels_to_ocr,                      # IDs have no typos -> OCR
+            "patient_nbr": set_all_labels_to_ocr,                       # IDs have no typos -> OCR
+            "race": set_all_labels_to_ocr,                              # Manual check -> all OCRs
+            "gender": set_all_labels_to_ocr,                            # Manual check -> all OCRs
+            "age": differentiate_errors_in_number_column,               # TODO: likely no typos
+            "weight": differentiate_errors_in_number_column,            # TODO: likely no typos
+            "admission_type_id": set_all_labels_to_ocr,                 # IDs have no typos -> OCR
+            "discharge_disposition_id": set_all_labels_to_ocr,          # IDs have no typos -> OCR
+            "admission_source_id": set_all_labels_to_ocr,               # IDs have no typos -> OCR
+            "time_in_hospital": partial(differentiate_errors_in_number_column, min_value=0, max_value=30), # results in only OCRs
+            "payer_code": set_all_labels_to_ocr,                        # Manual check -> all OCRs
+            "medical_specialty": medical_specialty_func,
             "num_lab_procedures": set_all_labels_to_ocr,
             "num_procedures": set_all_labels_to_ocr,
             "num_medications": set_all_labels_to_ocr,
