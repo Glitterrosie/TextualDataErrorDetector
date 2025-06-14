@@ -45,8 +45,8 @@ class MedicalDetector(Detector):
             "diag_2": check_with_spelling_library,
             "diag_3": check_with_spelling_library,
             "number_diagnoses": check_with_spelling_library,
-            "max_glu_serum": check_with_spelling_library,
-            "A1Cresult": check_with_spelling_library,
+            "max_glu_serum": self._not_a_max_glu_serum,
+            "A1Cresult": self._not_a_a1c_result,
             "metformin": self._check_not_in_No_Steady_Up_Down,
             "repaglinide": self._check_not_in_No_Steady_Up_Down,
             "nateglinide": self._check_not_in_No_Steady_Up_Down,
@@ -107,8 +107,8 @@ class MedicalDetector(Detector):
             "diag_2": differentiate_errors_in_string_column,
             "diag_3": differentiate_errors_in_string_column,
             "number_diagnoses": differentiate_errors_in_string_column,
-            "max_glu_serum": differentiate_errors_in_string_column,
-            "A1Cresult": differentiate_errors_in_string_column,
+            "max_glu_serum": set_all_labels_to_ocr,
+            "A1Cresult": set_all_labels_to_ocr,
             "metformin": no_steady_up_down_func, 
             "nateglinide": no_steady_up_down_func,
             "repaglinide": no_steady_up_down_func,
@@ -153,6 +153,16 @@ class MedicalDetector(Detector):
         It returns the misspelled word, if it is not in the list (invalid), otherwise it returns 0 (valid).
         """
         if not str(word).strip() in ['No', 'Steady', 'Up', 'Down']:
+            return word
+        return 0
+
+    def _not_a_max_glu_serum(self, word: str) -> bool:
+        if not str(word).strip() in ['Norm', 'Not Available', '>200', '>300']:
+            return word
+        return 0
+    
+    def _not_a_a1c_result(self, word:str) -> bool:
+        if not str(word).strip() in ['Norm','Not Available', '>7', '>8']:
             return word
         return 0
 

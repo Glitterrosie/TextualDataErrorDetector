@@ -8,24 +8,24 @@ from error_types import ErrorType
 positives = {
     "imdb_subset1_group1_w_errors":
         {
-        "typos": 240833,
-        "misspellings": 215062,
+        "typos": 240667,
+        "misspellings": 215929,
         "ocrs": 196447,
-        "transpositions": 0 # no numbers yet
+        "transpositions": 216000
         },
     "weather_subset1_group1_w_errors":
         {
-        "typos": 18847,
+        "typos": 19118,
         "misspellings": 0,
         "ocrs": 38899,
         "transpositions": 73538
         },
     "medical_subset1_group1_w_errors":
         {
-        "typos": 14927,
-        "misspellings": 22575,
+        "typos": 14937,
+        "misspellings": 22379,
         "ocrs": 43957,
-        "transpositions": 0 # no numbers yet
+        "transpositions": 129498
         },
 }
 
