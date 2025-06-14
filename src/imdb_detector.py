@@ -61,31 +61,32 @@ class IMDBDetector(Detector):
 
 
     def get_column_specific_label_mapping(self) -> dict:
+        series_years_label_func = partial(differentiate_errors_in_number_column, label_func=label_year)
         return {
-            "cast_id": set_all_labels_to_ocr,
-            "cast_person_id": set_all_labels_to_ocr,
-            "cast_movie_id": set_all_labels_to_ocr,
-            "cast_person_role_id": set_all_labels_to_ocr,
+            "cast_id": set_all_labels_to_ocr,                       # IDs have no typos -> OCR
+            "cast_person_id": set_all_labels_to_ocr,                # IDs have no typos -> OCR
+            "cast_movie_id": set_all_labels_to_ocr,                 # IDs have no typos -> OCR
+            "cast_person_role_id": set_all_labels_to_ocr,           # Manual check -> all OCRs
             "cast_note": differentiate_errors_in_string_column,
-            "cast_nr_order": set_all_labels_to_ocr,
-            "cast_role_id": set_all_labels_to_ocr,
-            "person_id": set_all_labels_to_ocr,
-            "person_movie_id": set_all_labels_to_ocr,
-            "person_info_type_id": set_all_labels_to_ocr,
+            "cast_nr_order": set_all_labels_to_ocr,                 # Manual check -> all OCRs
+            "cast_role_id": set_all_labels_to_ocr,                  # IDs have no typos -> OCR
+            "person_id": set_all_labels_to_ocr,                     # IDs have no typos -> OCR
+            "person_movie_id": set_all_labels_to_ocr,               # IDs have no typos -> OCR
+            "person_info_type_id": set_all_labels_to_ocr,           # IDs have no typos -> OCR
             "extra_info": differentiate_errors_in_string_column,
             "person_note": differentiate_errors_in_string_column,
-            "title_id": set_all_labels_to_ocr,
+            "title_id": set_all_labels_to_ocr,                      # IDs have no typos -> OCR
             "title": differentiate_errors_in_string_column,
-            "imdb_index": set_all_labels_to_ocr,
-            "kind_id": set_all_labels_to_ocr,
-            "production_year": set_all_labels_to_ocr, # although we could check for valid years, we found that all wrong values in this colun are actually OCRs
+            "imdb_index": set_all_labels_to_ocr,                    # Manual check -> all OCRs
+            "kind_id": set_all_labels_to_ocr,                       # IDs have no typos -> OCR
+            "production_year": set_all_labels_to_ocr,               # Manual check -> all OCRs
             "phonetic_code": self._label_phonetic_code,
-            "episode_of_id": set_all_labels_to_ocr,
-            "season_nr": set_all_labels_to_ocr,
-            "episode_nr": set_all_labels_to_ocr,
-            "series_years": partial(differentiate_errors_in_number_column, label_func=label_year),
-            "md5sum": set_all_labels_to_ocr,
-            "name": set_all_labels_to_ocr, # we checked manually, all unique values in this column are due to OCR errors
+            "episode_of_id": set_all_labels_to_ocr,                 # IDs have no typos -> OCR
+            "season_nr": set_all_labels_to_ocr,                     # TODO
+            "episode_nr": set_all_labels_to_ocr,                    # TODO
+            "series_years": series_years_label_func,
+            "md5sum": set_all_labels_to_ocr,                        # this column only contains OCRs
+            "name": set_all_labels_to_ocr,                          # Manual check -> all OCRs
         }
     
     def _label_identical_columns(self):
