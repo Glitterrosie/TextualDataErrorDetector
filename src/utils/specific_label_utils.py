@@ -32,6 +32,8 @@ def differentiate_errors_in_string_column(data_column: pd.Series, generic_labele
     for word in unique_flawed_words:
         if is_misspelling(word, correct_words_list):
             typo_word_map[word] = ErrorType.MISSPELLING.value
+        elif is_space_insertion_or_deletion_ocr(word, correct_words_list):
+            typo_word_map[word] = ErrorType.OCR.value
         elif is_transposition(word, correct_words_list):
             typo_word_map[word] = ErrorType.TYPO.value
         elif is_key_error(word, correct_words_list):
@@ -87,11 +89,12 @@ def is_deletion(word, correct_words_list):
             if all(candidate in correct_words_list for candidate in candidates.split()):
                 return True
         
-    # we need this extra loop to not make an early return and test seperatly for whitespaces
-    for i in range(len(word) + 1):
-        candidates = word[:i] + ' ' + word[i:]
-        if all(candidate in correct_words_list for candidate in candidates.split()):
-            return True
+    # we moved the check for space deletion to ocr detection
+    # # we need this extra loop to not make an early return and test seperatly for whitespaces
+    # for i in range(len(word) + 1):
+    #     candidates = word[:i] + ' ' + word[i:]
+    #     if all(candidate in correct_words_list for candidate in candidates.split()):
+    #         return True
     return False
     
 def is_insertion_or_replication(word, correct_words_list):
@@ -99,6 +102,22 @@ def is_insertion_or_replication(word, correct_words_list):
         candidate = word[:i] + word[i+1:]
         if candidate in correct_words_list:
             return True
+    return False
+
+def is_space_insertion_or_deletion_ocr(word, correct_words_list):
+    # was a space inserted
+    for i in range(len(word)):
+        if word[i] == ' ':
+            candidate = word[:i] + word[i+1:]
+            if candidate in correct_words_list:
+                return True
+
+    # was a space deleted
+    for i in range(len(word) + 1):
+        candidate = word[:i] + ' ' + word[i:]
+        if candidate in correct_words_list:
+            return True
+
     return False
 
 #  --- Number labeling Typos and OCRs ---

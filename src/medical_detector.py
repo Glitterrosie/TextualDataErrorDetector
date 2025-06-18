@@ -34,7 +34,7 @@ class MedicalDetector(Detector):
             "admission_source_id": is_not_a_number,
             "time_in_hospital": partial(is_not_a_number_in_range, min_value=0, max_value=30),
             "payer_code": self._check_payer_code_is_MC,
-            "medical_specialty": check_with_spelling_library,
+            "medical_specialty": self._is_not_a_medical_specialty,
             "num_lab_procedures": is_not_a_number,
             "num_procedures": is_not_a_number,
             "num_medications": is_not_a_number,
@@ -139,6 +139,11 @@ class MedicalDetector(Detector):
             "admission_source_desc": differentiate_errors_in_string_column,
             "discharge_disposition_desc": differentiate_errors_in_string_column,
         }
+
+    def _is_not_a_medical_specialty(self, value: str):
+        if value not in MEDICAL_SPECIALTY_VALUES:
+            return value
+        return 0
     
     def _check_payer_code_is_MC(self, payer_code: str) -> bool:
         """
