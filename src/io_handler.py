@@ -79,13 +79,13 @@ class IOHandler():
         total_true_errors = true_typos + true_misspellings + true_ocrs + true_transpositions
 
         # Prepare table data
-        headers = ["Error Type", "Detected", "True Total", "Detection Rate", "% of Total Cells"]
+        headers = ["Error Type", "Detected", "True Total", "Detection Rate", "% of Total Cells", "Expected % of Total Cells"]
         table_data = [
-            ["Misspellings", num_misspellings, true_misspellings, f"{(num_misspellings/true_misspellings*100):.2f}%" if true_misspellings > 0 else "N/A", f"{(num_misspellings/total_cells*100):.2f}%"],
-            ["Typos", num_typos, true_typos, f"{(num_typos/true_typos*100):.2f}%", f"{(num_typos/total_cells*100):.2f}%"],
-            ["OCR Errors", num_ocrs, true_ocrs, f"{(num_ocrs/true_ocrs*100):.2f}%", f"{(num_ocrs/total_cells*100):.2f}%"],
-            ["Word Transpositions", num_word_transpositions, true_transpositions, f"{(num_word_transpositions/true_transpositions*100):.2f}%", f"{(num_word_transpositions/total_cells*100):.2f}%"],
-            ["Total", num_labeled_cells, total_true_errors, f"{(num_labeled_cells/total_true_errors*100):.2f}%", f"{(num_labeled_cells/total_cells*100):.2f}%"]
+            ["Misspellings", num_misspellings, true_misspellings, f"{(num_misspellings/true_misspellings*100):.2f}%" if true_misspellings > 0 else "N/A", f"{(num_misspellings/total_cells*100):.2f}%", f"{(true_misspellings/total_cells*100):.2f}%"],
+            ["Typos", num_typos, true_typos, f"{(num_typos/true_typos*100):.2f}%", f"{(num_typos/total_cells*100):.2f}%", f"{(true_typos/total_cells*100):.2f}%"],
+            ["OCR Errors", num_ocrs, true_ocrs, f"{(num_ocrs/true_ocrs*100):.2f}%", f"{(num_ocrs/total_cells*100):.2f}%", f"{(true_ocrs/total_cells*100):.2f}%"],
+            ["Word Transpositions", num_word_transpositions, true_transpositions, f"{(num_word_transpositions/true_transpositions*100):.2f}%", f"{(num_word_transpositions/total_cells*100):.2f}%", f"{(true_transpositions/total_cells*100):.2f}%"],
+            ["Total", num_labeled_cells, total_true_errors, f"{(num_labeled_cells/total_true_errors*100):.2f}%", f"{(num_labeled_cells/total_cells*100):.2f}%", f"{(total_true_errors/total_cells*100):.2f}%"]
         ]
 
         print("\nError Detection Statistics:")
