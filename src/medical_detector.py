@@ -1,8 +1,8 @@
 from functools import partial
 
 from detector import Detector
-from constants import MEDICAL_SPECIALTY_VALUES
-from utils.generic_label_utils import check_with_spelling_library, is_not_a_number, is_not_a_number_in_range
+from constants.categorical_values import DISCHARGE_DISPOSITION_DESC_VALUES, ADMISSION_TYPE_DESC_VALUES, ADMISSION_SOURCE_DESC_VALUES, MEDICAL_SPECIALTY_VALUES
+from utils.generic_label_utils import check_with_spelling_library, is_not_a_number, is_not_a_number_in_range, is_not_value_in_list
 from utils.specific_label_utils import (
     differentiate_errors_in_number_column,
     differentiate_errors_in_string_column,
@@ -22,11 +22,21 @@ class MedicalDetector(Detector):
         self._label_diabetesMed_change_transpositions()
 
     def get_column_generic_label_mapping(self) -> dict:
+        is_not_a_valid_race = partial(is_not_value_in_list, categorical_values_list=['Caucasian', 'AfricanAmerican', 'Asian', 'Hispanic', 'Other'])
+        is_not_a_valid_gender = partial(is_not_value_in_list, categorical_values_list=['Male', 'Female'])
+        is_not_in_no_steady_up_down = partial(is_not_value_in_list, categorical_values_list=['No', 'Steady', 'Up', 'Down'])
+        is_not_a_valid_medical_specialty = partial(is_not_value_in_list, categorical_values_list=MEDICAL_SPECIALTY_VALUES)
+        is_not_a_valid_admission_type_desc = partial(is_not_value_in_list, categorical_values_list=ADMISSION_TYPE_DESC_VALUES)
+        is_not_a_valid_admission_source_desc = partial(is_not_value_in_list, categorical_values_list=ADMISSION_SOURCE_DESC_VALUES)
+        is_not_a_valid_discharge_disposition_desc = partial(is_not_value_in_list, categorical_values_list=DISCHARGE_DISPOSITION_DESC_VALUES)
+        is_not_a_valid_max_glu_serum = partial(is_not_value_in_list, categorical_values_list=['Norm', 'Not Available', '>200', '>300'])
+        is_not_a_valid_a1c_result = partial(is_not_value_in_list, categorical_values_list=['Norm','Not Available', '>7', '>8'])
+
         return {
             "encounter_id": is_not_a_number,
             "patient_nbr": is_not_a_number,
-            "race": self._is_not_a_valid_race,
-            "gender": self._is_not_male_female,
+            "race": is_not_a_valid_race,
+            "gender": is_not_a_valid_gender,
             "age": is_not_a_number,
             "weight": is_not_a_number,
             "admission_type_id": is_not_a_number,
@@ -34,7 +44,7 @@ class MedicalDetector(Detector):
             "admission_source_id": is_not_a_number,
             "time_in_hospital": partial(is_not_a_number_in_range, min_value=0, max_value=30),
             "payer_code": self._check_payer_code_is_MC,
-            "medical_specialty": self._is_not_a_medical_specialty,
+            "medical_specialty": is_not_a_valid_medical_specialty,
             "num_lab_procedures": is_not_a_number,
             "num_procedures": is_not_a_number,
             "num_medications": is_not_a_number,
@@ -45,37 +55,37 @@ class MedicalDetector(Detector):
             "diag_2": check_with_spelling_library,
             "diag_3": check_with_spelling_library,
             "number_diagnoses": check_with_spelling_library,
-            "max_glu_serum": self._not_a_max_glu_serum,
-            "A1Cresult": self._not_a_a1c_result,
-            "metformin": self._check_not_in_No_Steady_Up_Down,
-            "repaglinide": self._check_not_in_No_Steady_Up_Down,
-            "nateglinide": self._check_not_in_No_Steady_Up_Down,
-            "chlorpropamide": self._check_not_in_No_Steady_Up_Down,
-            "glimepiride": self._check_not_in_No_Steady_Up_Down,
-            "acetohexamide": self._check_not_in_No_Steady_Up_Down,
-            "glipizide": self._check_not_in_No_Steady_Up_Down,
-            "glyburide": self._check_not_in_No_Steady_Up_Down,
-            "tolbutamide": self._check_not_in_No_Steady_Up_Down,
-            "pioglitazone": self._check_not_in_No_Steady_Up_Down,
-            "rosiglitazone": self._check_not_in_No_Steady_Up_Down,
-            "acarbose": self._check_not_in_No_Steady_Up_Down,
-            "miglitol": self._check_not_in_No_Steady_Up_Down,
-            "troglitazone": self._check_not_in_No_Steady_Up_Down,
-            "tolazamide": self._check_not_in_No_Steady_Up_Down,
-            "examide": self._check_not_in_No_Steady_Up_Down,
-            "citoglipton": self._check_not_in_No_Steady_Up_Down,
-            "insulin": self._check_not_in_No_Steady_Up_Down,
-            "glyburide-metformin": self._check_not_in_No_Steady_Up_Down,
-            "glipizide-metformin": self._check_not_in_No_Steady_Up_Down,
-            "glimepiride-pioglitazone": self._check_not_in_No_Steady_Up_Down,
-            "metformin-rosiglitazone": self._check_not_in_No_Steady_Up_Down,
-            "metformin-pioglitazone": self._check_not_in_No_Steady_Up_Down,
+            "max_glu_serum": is_not_a_valid_max_glu_serum,
+            "A1Cresult": is_not_a_valid_a1c_result,
+            "metformin": is_not_in_no_steady_up_down,
+            "repaglinide": is_not_in_no_steady_up_down,
+            "nateglinide": is_not_in_no_steady_up_down,
+            "chlorpropamide": is_not_in_no_steady_up_down,
+            "glimepiride": is_not_in_no_steady_up_down,
+            "acetohexamide": is_not_in_no_steady_up_down,
+            "glipizide": is_not_in_no_steady_up_down,
+            "glyburide": is_not_in_no_steady_up_down,
+            "tolbutamide": is_not_in_no_steady_up_down,
+            "pioglitazone": is_not_in_no_steady_up_down,
+            "rosiglitazone": is_not_in_no_steady_up_down,
+            "acarbose": is_not_in_no_steady_up_down,
+            "miglitol": is_not_in_no_steady_up_down,
+            "troglitazone": is_not_in_no_steady_up_down,
+            "tolazamide": is_not_in_no_steady_up_down,
+            "examide": is_not_in_no_steady_up_down,
+            "citoglipton": is_not_in_no_steady_up_down,
+            "insulin": is_not_in_no_steady_up_down,
+            "glyburide-metformin": is_not_in_no_steady_up_down,
+            "glipizide-metformin": is_not_in_no_steady_up_down,
+            "glimepiride-pioglitazone": is_not_in_no_steady_up_down,
+            "metformin-rosiglitazone": is_not_in_no_steady_up_down,
+            "metformin-pioglitazone": is_not_in_no_steady_up_down,
             "change": check_with_spelling_library,
             "diabetesMed": check_with_spelling_library,
             "readmitted": check_with_spelling_library,
-            "admission_type_desc": check_with_spelling_library,
-            "admission_source_desc": check_with_spelling_library,
-            "discharge_disposition_desc": check_with_spelling_library,
+            "admission_type_desc": is_not_a_valid_admission_type_desc,
+            "admission_source_desc": is_not_a_valid_admission_source_desc,
+            "discharge_disposition_desc": is_not_a_valid_discharge_disposition_desc,
         }
 
 
@@ -83,6 +93,9 @@ class MedicalDetector(Detector):
         # TODO: using a categorical_values_list greatly DECREASES the number of typos and misspelings and INCREASES the number of OCR errors, check if this is correct
         no_steady_up_down_func = partial(differentiate_errors_in_string_column, categorical_values=['No', 'Steady', 'Up', 'Down'])
         medical_specialty_func = partial(differentiate_errors_in_string_column, categorical_values=MEDICAL_SPECIALTY_VALUES)
+        admission_type_desc_func = partial(differentiate_errors_in_string_column, categorical_values=ADMISSION_TYPE_DESC_VALUES)
+        admission_source_desc_func = partial(differentiate_errors_in_string_column, categorical_values=ADMISSION_SOURCE_DESC_VALUES)
+        discharge_disposition_desc_func = partial(differentiate_errors_in_string_column, categorical_values=DISCHARGE_DISPOSITION_DESC_VALUES)
 
         return {
             "encounter_id": set_all_labels_to_ocr,                      # IDs have no typos -> OCR
@@ -135,16 +148,11 @@ class MedicalDetector(Detector):
             "change": differentiate_errors_in_string_column,
             "diabetesMed": differentiate_errors_in_string_column,
             "readmitted": differentiate_errors_in_string_column,
-            "admission_type_desc": differentiate_errors_in_string_column,
-            "admission_source_desc": differentiate_errors_in_string_column,
-            "discharge_disposition_desc": differentiate_errors_in_string_column,
+            "admission_type_desc": admission_type_desc_func,
+            "admission_source_desc": admission_source_desc_func,
+            "discharge_disposition_desc": discharge_disposition_desc_func,
         }
 
-    def _is_not_a_medical_specialty(self, value: str):
-        if value not in MEDICAL_SPECIALTY_VALUES:
-            return value
-        return 0
-    
     def _check_payer_code_is_MC(self, payer_code: str) -> bool:
         """
         Check if the payer code is 'MC' (Medicare).
@@ -152,38 +160,6 @@ class MedicalDetector(Detector):
         """
         return payer_code if not payer_code.strip().upper() == "MC" else 0
 
-    def _check_not_in_No_Steady_Up_Down(self, word: str) -> bool:
-        """
-        Check if the word is not in the '[No, Steady, Up, Down]' list.
-        It returns the misspelled word, if it is not in the list (invalid), otherwise it returns 0 (valid).
-        """
-        if not str(word).strip() in ['No', 'Steady', 'Up', 'Down']:
-            return word
-        return 0
-
-    def _not_a_max_glu_serum(self, word: str) -> bool:
-        if not str(word).strip() in ['Norm', 'Not Available', '>200', '>300']:
-            return word
-        return 0
-    
-    def _not_a_a1c_result(self, word: str) -> bool:
-        if not str(word).strip() in ['Norm','Not Available', '>7', '>8']:
-            return word
-        return 0
-
-    def _is_not_a_valid_race(self, race: str) -> bool:
-        """
-        Check if the race is not a valid race.
-        It returns 1, if the race is not a valid race, otherwise it returns 0.
-        """
-        return race if not str(race) in ['Caucasian', 'AfricanAmerican', 'Asian', 'Hispanic', 'Other'] else 0
-
-    def _is_not_male_female(self, gender: str) -> bool:
-        """
-        Check if the gender is not a valid gender.
-        It returns 1, if the gender is not a valid gender, otherwise it returns 0.
-        """
-        return gender if not str(gender) in ['Male', 'Female'] else 0
 
     def _label_diabetesMed_change_transpositions(self):
         """
