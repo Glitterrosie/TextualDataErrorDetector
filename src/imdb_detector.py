@@ -107,7 +107,7 @@ class IMDBDetector(Detector):
         """
         if re.fullmatch(r'[A-Z]\d{1,4}', cell):
             return 0
-        return 1
+        return cell
 
     def _is_valid_roman_numeral(self, cell: str) -> int:
         """
@@ -117,7 +117,7 @@ class IMDBDetector(Detector):
         """
         if re.fullmatch(r'M{0,3}(CM|CD|D?C{0,3})(XC|XL|L?X{0,3})(IX|IV|V?I{0,3})', cell):
             return 0
-        return 1
+        return cell
 
     def is_not_a_series_years(self, value: str) -> bool:
         """
@@ -144,10 +144,10 @@ class IMDBDetector(Detector):
         try:
             value = float(value)
             if value != 999999.0:
-                return 1
+                return value
             return 0
         except ValueError:
-            return 1
+            return value
 
     def _label_phonetic_code(self, data_column: pd.Series, generic_labeled_cell_indices: pd.Index, generic_labeled_dataset) -> pd.Series:
         label_column = pd.Series(0, index=data_column.index, dtype=int)
@@ -171,7 +171,7 @@ class IMDBDetector(Detector):
         return label_column
     
     def _is_not_a_valid_hash(self, value: str):
-        return all(c in "0123456789abcdefABCDEF" for c in value)
+        return value if not all(c in "0123456789abcdefABCDEF" for c in value) else 0
 
     def _label_cast_note_person_note_transpositions(self):
         """

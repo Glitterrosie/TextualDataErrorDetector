@@ -134,35 +134,35 @@ class WeatherDetector(Detector):
             "RainTomorrow": set_all_labels_to_ocr,                      # Manual check -> all OCRs
         }
 
-    def _is_not_a_valid_date(self, value: str) -> bool:
+    def _is_not_a_valid_date(self, value) -> bool:
         """
         Check if the value is not a valid date.
         The date is in format "YYYY-MM-DD".
         """
         if not isinstance(value, str):
-            return True
+            return value
         parts = value.split("-")
         if len(parts) != 3:
-            return True
+            return value
         year, month, day = parts
         if not (year.isdigit() and month.isdigit() and day.isdigit()):
-            return True
+            return value
         if not (1 <= int(month) <= 12 and 1 <= int(day) <= 31):
-            return True
-        return False
+            return value
+        return 0
 
     def _is_not_valid_wind_dir(self, value: str) -> bool:
         """
         Check if the wind gust direction is not a valid direction.
         Valid directions are: N, NNE, NE, ENE, E, ESE, SE, SSE, S, SSW, SW, WSW, W, WNW, NW, NNW.
         """
-        return value if value not in VALID_WIND_DIRECTIONS else False
+        return value if value not in VALID_WIND_DIRECTIONS else 0
 
     def _is_not_yes_no(self, value: str) -> bool:
         """
         Check if the value is not 'Yes' or 'No'.
         """
-        return value if value not in ["Yes", "No"] else False
+        return value if value not in ["Yes", "No"] else 0
 
     def _is_not_valid_pressure(self, value: str) -> bool:
         """
@@ -171,6 +171,6 @@ class WeatherDetector(Detector):
         """
         try:
             pressure = float(value)
-            return value if pressure < 950 or pressure > 1050 else False
+            return value if pressure < 950 or pressure > 1050 else 0
         except ValueError:
             return value

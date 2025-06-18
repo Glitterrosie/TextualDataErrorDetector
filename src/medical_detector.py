@@ -145,7 +145,7 @@ class MedicalDetector(Detector):
         Check if the payer code is 'MC' (Medicare).
         It returns 1, if the payer code is not 'MC', otherwise it returns 0.
         """
-        return not payer_code.strip().upper() == "MC"
+        return payer_code if not payer_code.strip().upper() == "MC" else 0
 
     def _check_not_in_No_Steady_Up_Down(self, word: str) -> bool:
         """
@@ -161,7 +161,7 @@ class MedicalDetector(Detector):
             return word
         return 0
     
-    def _not_a_a1c_result(self, word:str) -> bool:
+    def _not_a_a1c_result(self, word: str) -> bool:
         if not str(word).strip() in ['Norm','Not Available', '>7', '>8']:
             return word
         return 0
@@ -171,14 +171,14 @@ class MedicalDetector(Detector):
         Check if the race is not a valid race.
         It returns 1, if the race is not a valid race, otherwise it returns 0.
         """
-        return not str(race) in ['Caucasian', 'AfricanAmerican', 'Asian', 'Hispanic', 'Other']
+        return race if not str(race) in ['Caucasian', 'AfricanAmerican', 'Asian', 'Hispanic', 'Other'] else 0
 
     def _is_not_male_female(self, gender: str) -> bool:
         """
         Check if the gender is not a valid gender.
         It returns 1, if the gender is not a valid gender, otherwise it returns 0.
         """
-        return not str(gender) in ['Male', 'Female']
+        return gender if not str(gender) in ['Male', 'Female'] else 0
 
     def _label_diabetesMed_change_transpositions(self):
         """
