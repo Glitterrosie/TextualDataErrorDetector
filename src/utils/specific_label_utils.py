@@ -32,6 +32,8 @@ def differentiate_errors_in_string_column(data_column: pd.Series, generic_labele
     for value in unique_flawed_values: # values can also be contain multiple words like "Emergency Rome"
         if is_misspelling(value, correct_words_list):
             typo_values_map[value] = ErrorType.MISSPELLING.value
+        elif ends_with_signs_near_enter(value):
+            typo_values_map[value] = ErrorType.TYPO.value
         elif is_space_insertion_or_deletion_ocr(value, correct_words_list):
             typo_values_map[value] = ErrorType.OCR.value
         elif is_transposition(value, correct_words_list):
@@ -90,11 +92,6 @@ def is_deletion(word, correct_words_list):
                 return True
         
     # we moved the check for space deletion to ocr detection
-    # # we need this extra loop to not make an early return and test seperatly for whitespaces
-    # for i in range(len(word) + 1):
-    #     candidates = word[:i] + ' ' + word[i:]
-    #     if all(candidate in correct_words_list for candidate in candidates.split()):
-    #         return True
     return False
     
 def is_insertion_or_replication(word, correct_words_list):
@@ -118,6 +115,11 @@ def is_space_insertion_or_deletion_ocr(word, correct_words_list):
         if candidate in correct_words_list:
             return True
 
+    return False
+
+def ends_with_signs_near_enter(value):
+    if value[-1] in [']', '\\', '=', '|', '}', '+']:
+        return True
     return False
 
 #  --- Number labeling Typos and OCRs ---
@@ -161,6 +163,9 @@ def label_number_with_ocr_or_typo(word: str | int | float, min_value: float = No
     word = str(word)
     if word[-1] in [".", ",", "-"]: # we assume a number like 8743. that ends with a . is an OCR, although it could theoretically be a deletion or insertion typo
         return ErrorType.OCR.value
+
+    if ends_with_signs_near_enter(word):
+        return ErrorType.TYPO.value
 
     if word[0] == "0" and word[1] != ".": # we assume a number like 08.1 that starts with a 0 is an OCR, although it could theoretically be a hard to detect typo of 80.1.
         return get_label_for_number_with_0_prefix(word, min_value, max_value)
