@@ -2,30 +2,31 @@ import os
 import pickle
 
 import pandas as pd
+from tabulate import tabulate, SEPARATING_LINE
 
 from error_types import ErrorType
 
-positives = {
+total_injected_errors = {
     "imdb_subset1_group1_w_errors":
         {
-        "typos": 240667,
-        "misspellings": 215929,
-        "ocrs": 196447,
+        "misspellings": 215010,
+        "typos": 240668,
+        "ocrs": 196455,
         "transpositions": 216000
         },
     "weather_subset1_group1_w_errors":
         {
-        "typos": 19118,
         "misspellings": 0,
+        "typos": 19118,
         "ocrs": 38899,
         "transpositions": 73538
         },
     "medical_subset1_group1_w_errors":
         {
+        "misspellings": 22574,
         "typos": 14937,
-        "misspellings": 22379,
-        "ocrs": 43957,
-        "transpositions": 129498
+        "ocrs": 43959,
+        "transpositions": 129452
         },
 }
 
@@ -62,27 +63,40 @@ class IOHandler():
 
     def _print_percentage_of_labeled_cells(self, labels: pd.DataFrame, base_name: str) -> float:
         """
-        Returns the percentage of polluted cells in the dataset.
+        Returns the percentage of polluted cells in the dataset and prints a formatted table of statistics.
         """
         total_cells = labels.size
-        num_typos = labels.eq(ErrorType.TYPO.value).sum().sum()
-        num_misspellings = labels.eq(ErrorType.MISSPELLING.value).sum().sum()
-        num_ocrs = labels.eq(ErrorType.OCR.value).sum().sum()
-        num_word_transpositions = labels.eq(ErrorType.WORD_TRANSPOSITION.value).sum().sum()
+        num_typos = int(labels.eq(ErrorType.TYPO.value).sum().sum())
+        num_misspellings = int(labels.eq(ErrorType.MISSPELLING.value).sum().sum())
+        num_ocrs = int(labels.eq(ErrorType.OCR.value).sum().sum())
+        num_word_transpositions = int(labels.eq(ErrorType.WORD_TRANSPOSITION.value).sum().sum())
         num_labeled_cells = num_typos + num_misspellings + num_ocrs + num_word_transpositions
-        num_labeled_rows = labels.ne(0).any(axis=1).sum()
 
-        true_typos = positives[base_name]["typos"]
-        true_misspellings = positives[base_name]["misspellings"]
-        true_ocrs = positives[base_name]["ocrs"]
-        true_transpositions = positives[base_name]["transpositions"]
+        true_typos = total_injected_errors[base_name]["typos"]
+        true_misspellings = total_injected_errors[base_name]["misspellings"]
+        true_ocrs = total_injected_errors[base_name]["ocrs"]
+        true_transpositions = total_injected_errors[base_name]["transpositions"]
+        total_true_errors = true_typos + true_misspellings + true_ocrs + true_transpositions
 
-        print(f"Number of labeled cells: {num_labeled_cells}, Number of labeled rows: {num_labeled_rows}.")
-        print(f"Percentage of polluted cells: \t\t{num_labeled_cells / total_cells * 100:.2f}%")
-        print(f"Percentage of typo cells: \t\t{num_typos / total_cells * 100:.2f}%. \tTotal of {num_typos}/{true_typos} labeled.")
-        print(f"Percentage of misspelling cells: \t{num_misspellings / total_cells * 100:.2f}%. \tTotal of {num_misspellings}/{true_misspellings} labeled.")
-        print(f"Percentage of OCR cells: \t\t{num_ocrs / total_cells * 100:.2f}%. \tTotal of {num_ocrs}/{true_ocrs} labeled.")
-        print(f"Percentage of transposition cells: \t{num_word_transpositions / total_cells * 100:.2f}%. \tTotal of {num_word_transpositions}/{true_transpositions} labeled.\n\n")
+        # Prepare table data
+        headers = ["Error Type", "Detected", "True Total", "Detection Rate", "% of Total Cells"]
+        table_data = [
+            ["Misspellings", num_misspellings, true_misspellings, f"{(num_misspellings/true_misspellings*100):.2f}%" if true_misspellings > 0 else "N/A", f"{(num_misspellings/total_cells*100):.2f}%"],
+            ["Typos", num_typos, true_typos, f"{(num_typos/true_typos*100):.2f}%", f"{(num_typos/total_cells*100):.2f}%"],
+            ["OCR Errors", num_ocrs, true_ocrs, f"{(num_ocrs/true_ocrs*100):.2f}%", f"{(num_ocrs/total_cells*100):.2f}%"],
+            ["Word Transpositions", num_word_transpositions, true_transpositions, f"{(num_word_transpositions/true_transpositions*100):.2f}%", f"{(num_word_transpositions/total_cells*100):.2f}%"],
+            ["Total", num_labeled_cells, total_true_errors, f"{(num_labeled_cells/total_true_errors*100):.2f}%", f"{(num_labeled_cells/total_cells*100):.2f}%"]
+        ]
+
+        print("\nError Detection Statistics:")
+        print(tabulate(table_data, 
+                      headers=headers, 
+                      tablefmt="fancy_grid", 
+                      numalign="right",
+                      stralign="right",
+                      colalign=("left", "right", "right", "right", "right"),
+                      intfmt=","))
+        print()
 
 
     def save_pickled_dataset(self, dataset: pd.DataFrame):
