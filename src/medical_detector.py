@@ -47,7 +47,7 @@ class MedicalDetector(Detector):
             "discharge_disposition_id": partial(is_not_a_number_in_range, min_value=0, max_value=29),
             "admission_source_id": partial(is_not_a_number_in_range, min_value=0, max_value=19),
             "time_in_hospital": partial(is_not_a_number_in_range, min_value=0, max_value=30),
-            "payer_code": self._check_payer_code_is_MC,
+            "payer_code": self._is_not_payer_code_MC,
             "medical_specialty": is_not_a_valid_medical_specialty,
             "num_lab_procedures": is_not_a_number,
             "num_procedures": is_not_a_number,
@@ -55,9 +55,9 @@ class MedicalDetector(Detector):
             "number_outpatient": is_not_a_number,
             "number_emergency": is_not_a_number,
             "number_inpatient": is_not_a_number,
-            "diag_1": is_not_a_number,
-            "diag_2": check_with_spelling_library,
-            "diag_3": check_with_spelling_library,
+            "diag_1": self._is_not_icd9_code,
+            "diag_2": self._is_not_icd9_code,
+            "diag_3": self._is_not_icd9_code,
             "number_diagnoses": check_with_spelling_library,
             "max_glu_serum": is_not_a_valid_max_glu_serum,
             "A1Cresult": is_not_a_valid_a1c_result,
@@ -120,9 +120,9 @@ class MedicalDetector(Detector):
             "number_outpatient": set_all_labels_to_ocr,
             "number_emergency": set_all_labels_to_ocr,
             "number_inpatient": set_all_labels_to_ocr,
-            "diag_1": set_all_labels_to_ocr,
-            "diag_2": differentiate_errors_in_string_column,
-            "diag_3": differentiate_errors_in_string_column,
+            "diag_1": differentiate_errors_in_string_column,            # most of them are OCRs, but there are definitely some typos in there e.g. 278
+            "diag_2": differentiate_errors_in_string_column,            # most of them are OCRs, but there are definitely some typos in there e.g. 278
+            "diag_3": differentiate_errors_in_string_column,            # most of them are OCRs, but there are definitely some typos in there e.g. 278
             "number_diagnoses": differentiate_errors_in_string_column,
             "max_glu_serum": set_all_labels_to_ocr,
             "A1Cresult": set_all_labels_to_ocr,
@@ -157,12 +157,31 @@ class MedicalDetector(Detector):
             "discharge_disposition_desc": discharge_disposition_desc_func,
         }
 
-    def _check_payer_code_is_MC(self, payer_code: str) -> bool:
+    def _is_not_payer_code_MC(self, payer_code: str) -> bool:
         """
         Check if the payer code is 'MC' (Medicare).
         It returns 1, if the payer code is not 'MC', otherwise it returns 0.
         """
         return payer_code if not payer_code.strip().upper() == "MC" else 0
+
+    def _is_not_icd9_code(self, value: str) -> bool:
+        """
+        ICD-9 codes are either a number or a string.
+        If it is a number, it must be between 0 and 1000.
+        If it is a string, it must be an E-code or a V-code. E-codes are between E800 and E999, V-codes are between V01 and V82.
+        """
+        if not is_a_number(value):
+            e_codes = [f"E{num}" for num in range(800, 1000)]
+            v_codes_0 = [f"V0{num}" for num in range(1, 10)]
+            v_codes_10 = [f"V{num}" for num in range(10, 83)]
+            v_codes = v_codes_0 + v_codes_10
+
+            if not value in e_codes and not value in v_codes:
+                return value
+        else:
+            if float(value) > 1000:
+                return value
+        return 0
 
 
     def _label_diabetesMed_change_transpositions(self):
