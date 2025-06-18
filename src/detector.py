@@ -34,7 +34,7 @@ class Detector(ABC):
             label_function = column_generic_label_mapping[column_name]
 
             self.generic_labeled_dataset[column_name] = self.dataset[column_name].apply(label_function)
-        print("Generically labelled all data.")
+        print("Generically labeled all data.")
 
         specific_column_label_mapping = self.get_column_specific_label_mapping()
         for column_name in self.dataset.columns:
@@ -44,7 +44,7 @@ class Detector(ABC):
             # each column has its own mapping function how to assign specific error types to the generic labeled cells
             label_function = specific_column_label_mapping[column_name]
             self.labels[column_name] = label_function(self.dataset[column_name], generic_labeled_cell_indices, self.generic_labeled_dataset[column_name])
-        print("Specifically labelled all data.")
+        print("Specifically labeled all data.")
 
     @abstractmethod
     def get_column_generic_label_mapping(self) -> dict:
