@@ -22,35 +22,35 @@ def set_all_labels_to_ocr(data_column: pd.Series, generic_labeled_cell_indices: 
 
 def differentiate_errors_in_string_column(data_column: pd.Series, generic_labeled_cell_indices: pd.Index, generic_labeled_dataset: pd.DataFrame, categorical_values: list[str] = None) -> pd.Series:
     label_column = pd.Series(0, index=data_column.index, dtype=int)
-    flawed_words_series = generic_labeled_dataset.loc[generic_labeled_cell_indices]
-    unique_flawed_words = flawed_words_series.unique()
+    flawed_values_series = generic_labeled_dataset.loc[generic_labeled_cell_indices]
+    unique_flawed_values = flawed_values_series.unique()
 
     correct_words_list = categorical_values if categorical_values is not None else spell
     
-    typo_word_map = {}
+    typo_values_map = {}
 
-    for word in unique_flawed_words:
-        if is_misspelling(word, correct_words_list):
-            typo_word_map[word] = ErrorType.MISSPELLING.value
-        elif is_space_insertion_or_deletion_ocr(word, correct_words_list):
-            typo_word_map[word] = ErrorType.OCR.value
-        elif is_transposition(word, correct_words_list):
-            typo_word_map[word] = ErrorType.TYPO.value
-        elif is_key_error(word, correct_words_list):
-            typo_word_map[word] = ErrorType.TYPO.value
-        elif is_insertion_or_replication(word, correct_words_list):
-            typo_word_map[word] = ErrorType.TYPO.value
-        elif has_linguistic_misspelling_pattern(word, correct_words_list):
-            typo_word_map[word] = ErrorType.MISSPELLING.value
-        elif is_deletion(word, correct_words_list):
-            typo_word_map[word] = ErrorType.TYPO.value
+    for value in unique_flawed_values: # values can also be contain multiple words like "Emergency Rome"
+        if is_misspelling(value, correct_words_list):
+            typo_values_map[value] = ErrorType.MISSPELLING.value
+        elif is_space_insertion_or_deletion_ocr(value, correct_words_list):
+            typo_values_map[value] = ErrorType.OCR.value
+        elif is_transposition(value, correct_words_list):
+            typo_values_map[value] = ErrorType.TYPO.value
+        elif is_key_error(value, correct_words_list):
+            typo_values_map[value] = ErrorType.TYPO.value
+        elif is_insertion_or_replication(value, correct_words_list):
+            typo_values_map[value] = ErrorType.TYPO.value
+        elif has_linguistic_misspelling_pattern(value, correct_words_list):
+            typo_values_map[value] = ErrorType.MISSPELLING.value
+        elif is_deletion(value, correct_words_list):
+            typo_values_map[value] = ErrorType.TYPO.value
         else:
-            typo_word_map[word] = ErrorType.OCR.value
+            typo_values_map[value] = ErrorType.OCR.value
 
     # Remap results back to the original indices
-    for index, word in flawed_words_series.items():
-        if typo_word_map.get(word, False):
-            label_column.loc[index] = typo_word_map[word]
+    for index, value in flawed_values_series.items():
+        if typo_values_map.get(value, False):
+            label_column.loc[index] = typo_values_map[value]
 
     return label_column
 
@@ -228,18 +228,19 @@ def is_replaced_ocr_in_range(word: str | int | float, min_value: float, max_valu
 
 #  --- Misspelling detection ---
 
-def is_misspelling(word, correct_words_list):
-    if word in MISSPELLINGS_LIST and not word in correct_words_list:
-        return True
+def is_misspelling(value, correct_words_list):
+    for word in value.split():
+        if word in MISSPELLINGS_LIST and not word in correct_words_list:
+            return True
     return False
 
-def has_linguistic_misspelling_pattern(word, correct_words_list):
-    word = word.lower()
+def has_linguistic_misspelling_pattern(value, correct_words_list):
+    value = value.lower()
 
     for pattern_type, pattern_list in MISSPELLING_PATTERNS.items():
         for wrong_seq, correct_seq in pattern_list:
-            if wrong_seq in word:
-                candidate = word.replace(wrong_seq, correct_seq, 1)
+            if wrong_seq in value:
+                candidate = value.replace(wrong_seq, correct_seq, 1)
                 if candidate in correct_words_list:
                     return pattern_type
     return None
