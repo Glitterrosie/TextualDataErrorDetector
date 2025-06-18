@@ -97,31 +97,3 @@ class IOHandler():
                       colalign=("left", "right", "right", "right", "right"),
                       intfmt=","))
         print()
-
-
-    def save_pickled_dataset(self, dataset: pd.DataFrame):
-        output_folder = os.path.dirname(self.dataset_path)
-        if not os.path.exists(output_folder):
-            os.makedirs(output_folder)
-
-        base_name, ext = os.path.splitext(os.path.basename(self.dataset_path))
-        dataset_name = base_name.split('_')[0]
-        pickle_name = dataset_name + '_tokenized' 
-
-        dataset_output_path = os.path.join(output_folder, f"{pickle_name}.pkl")
-        with open(dataset_output_path, 'wb') as f:
-            pickle.dump(dataset, f)
-
-
-    def load_pickled_dataset(self) -> pd.DataFrame:
-        base_name, ext = os.path.splitext(os.path.basename(self.dataset_path))
-        dataset_name = base_name.split('_')[0]
-        pickle_name = dataset_name + '_tokenized' 
-
-        dataset_output_path = os.path.join(os.path.dirname(self.dataset_path), f"{pickle_name}.pkl")
-        if not os.path.exists(dataset_output_path):
-            raise FileNotFoundError(f"Pickle file {dataset_output_path} does not exist.")
-        
-        with open(dataset_output_path, 'rb') as f:
-            dataset = pickle.load(f)
-        return dataset
