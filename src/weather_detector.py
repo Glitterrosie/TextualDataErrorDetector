@@ -2,7 +2,7 @@ from functools import partial
 
 from error_types import ErrorType
 from detector import Detector
-from constants.categorical_values import VALID_WIND_DIRECTIONS
+from constants import VALID_WIND_DIRECTIONS, get_australian_cities_list
 from utils.generic_label_utils import (
     check_with_spelling_library,
     is_a_number,
@@ -82,9 +82,12 @@ class WeatherDetector(Detector):
         is_not_a_valid_wind_dir = partial(is_not_value_in_list, categorical_values_list=VALID_WIND_DIRECTIONS)
         is_not_yes_no = partial(is_not_value_in_list, categorical_values_list=['Yes', 'No'])
 
+        location_list = get_australian_cities_list()
+        is_not_valid_location = partial(is_not_value_in_list, categorical_values_list=location_list)
+
         return {
             "Date": self._is_not_a_valid_date,
-            "Location": check_with_spelling_library,
+            "Location": is_not_valid_location,
             "MinTemp": is_not_a_number,
             "MaxTemp": is_not_a_number,
             "Rainfall": is_not_a_number,
@@ -109,9 +112,11 @@ class WeatherDetector(Detector):
         }
 
     def get_column_specific_label_mapping(self) -> dict:
+        location_list = get_australian_cities_list()
+        differentiate_errors_for_location = partial(differentiate_errors_in_string_column, categorical_values=location_list)
         return {
             "Date": set_all_labels_to_ocr,
-            "Location": differentiate_errors_in_string_column,
+            "Location": differentiate_errors_for_location,
             "MinTemp": differentiate_errors_in_number_column,
             "MaxTemp": differentiate_errors_in_number_column,
             "Rainfall": differentiate_errors_in_number_column,
