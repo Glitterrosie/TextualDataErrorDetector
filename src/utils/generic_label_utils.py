@@ -39,6 +39,11 @@ def is_a_number(value: str) -> bool:
         return True
     except ValueError:
         return False
+
+def is_not_value_in_list(value: str, categorical_values_list: list) -> bool:
+    if str(value).strip() not in categorical_values_list:
+        return value
+    return 0
     
 def check_with_spelling_library(value: str) -> bool:
     tokenized_values = tokenizer.tokenize_cell(value)

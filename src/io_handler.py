@@ -79,13 +79,13 @@ class IOHandler():
         total_true_errors = true_typos + true_misspellings + true_ocrs + true_transpositions
 
         # Prepare table data
-        headers = ["Error Type", "Detected", "True Total", "Detection Rate", "% of Total Cells"]
+        headers = ["Error Type", "Detected", "True Total", "Detection Rate", "% of Total Cells", "Expected % of Total Cells"]
         table_data = [
-            ["Misspellings", num_misspellings, true_misspellings, f"{(num_misspellings/true_misspellings*100):.2f}%" if true_misspellings > 0 else "N/A", f"{(num_misspellings/total_cells*100):.2f}%"],
-            ["Typos", num_typos, true_typos, f"{(num_typos/true_typos*100):.2f}%", f"{(num_typos/total_cells*100):.2f}%"],
-            ["OCR Errors", num_ocrs, true_ocrs, f"{(num_ocrs/true_ocrs*100):.2f}%", f"{(num_ocrs/total_cells*100):.2f}%"],
-            ["Word Transpositions", num_word_transpositions, true_transpositions, f"{(num_word_transpositions/true_transpositions*100):.2f}%", f"{(num_word_transpositions/total_cells*100):.2f}%"],
-            ["Total", num_labeled_cells, total_true_errors, f"{(num_labeled_cells/total_true_errors*100):.2f}%", f"{(num_labeled_cells/total_cells*100):.2f}%"]
+            ["Misspellings", num_misspellings, true_misspellings, f"{(num_misspellings/true_misspellings*100):.2f}%" if true_misspellings > 0 else "N/A", f"{(num_misspellings/total_cells*100):.2f}%", f"{(true_misspellings/total_cells*100):.2f}%"],
+            ["Typos", num_typos, true_typos, f"{(num_typos/true_typos*100):.2f}%", f"{(num_typos/total_cells*100):.2f}%", f"{(true_typos/total_cells*100):.2f}%"],
+            ["OCR Errors", num_ocrs, true_ocrs, f"{(num_ocrs/true_ocrs*100):.2f}%", f"{(num_ocrs/total_cells*100):.2f}%", f"{(true_ocrs/total_cells*100):.2f}%"],
+            ["Word Transpositions", num_word_transpositions, true_transpositions, f"{(num_word_transpositions/true_transpositions*100):.2f}%", f"{(num_word_transpositions/total_cells*100):.2f}%", f"{(true_transpositions/total_cells*100):.2f}%"],
+            ["Total", num_labeled_cells, total_true_errors, f"{(num_labeled_cells/total_true_errors*100):.2f}%", f"{(num_labeled_cells/total_cells*100):.2f}%", f"{(total_true_errors/total_cells*100):.2f}%"]
         ]
 
         print("\nError Detection Statistics:")
@@ -97,31 +97,3 @@ class IOHandler():
                       colalign=("left", "right", "right", "right", "right"),
                       intfmt=","))
         print()
-
-
-    def save_pickled_dataset(self, dataset: pd.DataFrame):
-        output_folder = os.path.dirname(self.dataset_path)
-        if not os.path.exists(output_folder):
-            os.makedirs(output_folder)
-
-        base_name, ext = os.path.splitext(os.path.basename(self.dataset_path))
-        dataset_name = base_name.split('_')[0]
-        pickle_name = dataset_name + '_tokenized' 
-
-        dataset_output_path = os.path.join(output_folder, f"{pickle_name}.pkl")
-        with open(dataset_output_path, 'wb') as f:
-            pickle.dump(dataset, f)
-
-
-    def load_pickled_dataset(self) -> pd.DataFrame:
-        base_name, ext = os.path.splitext(os.path.basename(self.dataset_path))
-        dataset_name = base_name.split('_')[0]
-        pickle_name = dataset_name + '_tokenized' 
-
-        dataset_output_path = os.path.join(os.path.dirname(self.dataset_path), f"{pickle_name}.pkl")
-        if not os.path.exists(dataset_output_path):
-            raise FileNotFoundError(f"Pickle file {dataset_output_path} does not exist.")
-        
-        with open(dataset_output_path, 'rb') as f:
-            dataset = pickle.load(f)
-        return dataset

@@ -1,8 +1,8 @@
 from functools import partial
 
 from detector import Detector
-from constants import MEDICAL_SPECIALTY_VALUES
-from utils.generic_label_utils import check_with_spelling_library, is_not_a_number, is_not_a_number_in_range
+from constants.categorical_values import DISCHARGE_DISPOSITION_DESC_VALUES, ADMISSION_TYPE_DESC_VALUES, ADMISSION_SOURCE_DESC_VALUES, MEDICAL_SPECIALTY_VALUES
+from utils.generic_label_utils import check_with_spelling_library, is_a_number, is_not_a_number, is_not_a_number_in_range, is_not_value_in_list
 from utils.specific_label_utils import (
     differentiate_errors_in_number_column,
     differentiate_errors_in_string_column,
@@ -20,62 +20,76 @@ class MedicalDetector(Detector):
 
         super().detect()
         self._label_diabetesMed_change_transpositions()
+        self._label_num_procedures_num_medications_transpositions()
 
     def get_column_generic_label_mapping(self) -> dict:
+        is_not_a_valid_race = partial(is_not_value_in_list, categorical_values_list=['Caucasian', 'AfricanAmerican', 'Asian', 'Hispanic', 'Other'])
+        is_not_a_valid_gender = partial(is_not_value_in_list, categorical_values_list=['Male', 'Female', 'Unknown/Invalid'])
+        is_not_in_no_steady_up_down = partial(is_not_value_in_list, categorical_values_list=['No', 'Steady', 'Up', 'Down'])
+        is_not_a_valid_medical_specialty = partial(is_not_value_in_list, categorical_values_list=MEDICAL_SPECIALTY_VALUES)
+        is_not_a_valid_admission_type_desc = partial(is_not_value_in_list, categorical_values_list=ADMISSION_TYPE_DESC_VALUES)
+        is_not_a_valid_admission_source_desc = partial(is_not_value_in_list, categorical_values_list=ADMISSION_SOURCE_DESC_VALUES)
+        is_not_a_valid_discharge_disposition_desc = partial(is_not_value_in_list, categorical_values_list=DISCHARGE_DISPOSITION_DESC_VALUES)
+        is_not_a_valid_max_glu_serum = partial(is_not_value_in_list, categorical_values_list=['Norm', 'Not Available', '>200', '>300'])
+        is_not_a_valid_a1c_result = partial(is_not_value_in_list, categorical_values_list=['Norm','Not Available', '>7', '>8'])
+        is_not_a_valid_readmitted = partial(is_not_value_in_list, categorical_values_list=['No', '<30', '>30'])
+        is_not_a_valid_change = partial(is_not_value_in_list, categorical_values_list=['No', 'Ch', 'Gli'])
+        is_not_a_valid_diabetes_med = partial(is_not_value_in_list, categorical_values_list=['Yes', 'No'])
+
         return {
             "encounter_id": is_not_a_number,
             "patient_nbr": is_not_a_number,
-            "race": self._is_not_a_valid_race,
-            "gender": self._is_not_male_female,
+            "race": is_not_a_valid_race,
+            "gender": is_not_a_valid_gender,
             "age": is_not_a_number,
             "weight": is_not_a_number,
-            "admission_type_id": is_not_a_number,
-            "discharge_disposition_id": is_not_a_number,
-            "admission_source_id": is_not_a_number,
+            "admission_type_id": partial(is_not_a_number_in_range, min_value=0, max_value=9),
+            "discharge_disposition_id": partial(is_not_a_number_in_range, min_value=0, max_value=29),
+            "admission_source_id": partial(is_not_a_number_in_range, min_value=0, max_value=19),
             "time_in_hospital": partial(is_not_a_number_in_range, min_value=0, max_value=30),
-            "payer_code": self._check_payer_code_is_MC,
-            "medical_specialty": check_with_spelling_library,
+            "payer_code": self._is_not_payer_code_MC,
+            "medical_specialty": is_not_a_valid_medical_specialty,
             "num_lab_procedures": is_not_a_number,
             "num_procedures": is_not_a_number,
             "num_medications": is_not_a_number,
             "number_outpatient": is_not_a_number,
             "number_emergency": is_not_a_number,
             "number_inpatient": is_not_a_number,
-            "diag_1": is_not_a_number,
-            "diag_2": check_with_spelling_library,
-            "diag_3": check_with_spelling_library,
+            "diag_1": self._is_not_icd9_code,
+            "diag_2": self._is_not_icd9_code,
+            "diag_3": self._is_not_icd9_code,
             "number_diagnoses": check_with_spelling_library,
-            "max_glu_serum": self._not_a_max_glu_serum,
-            "A1Cresult": self._not_a_a1c_result,
-            "metformin": self._check_not_in_No_Steady_Up_Down,
-            "repaglinide": self._check_not_in_No_Steady_Up_Down,
-            "nateglinide": self._check_not_in_No_Steady_Up_Down,
-            "chlorpropamide": self._check_not_in_No_Steady_Up_Down,
-            "glimepiride": self._check_not_in_No_Steady_Up_Down,
-            "acetohexamide": self._check_not_in_No_Steady_Up_Down,
-            "glipizide": self._check_not_in_No_Steady_Up_Down,
-            "glyburide": self._check_not_in_No_Steady_Up_Down,
-            "tolbutamide": self._check_not_in_No_Steady_Up_Down,
-            "pioglitazone": self._check_not_in_No_Steady_Up_Down,
-            "rosiglitazone": self._check_not_in_No_Steady_Up_Down,
-            "acarbose": self._check_not_in_No_Steady_Up_Down,
-            "miglitol": self._check_not_in_No_Steady_Up_Down,
-            "troglitazone": self._check_not_in_No_Steady_Up_Down,
-            "tolazamide": self._check_not_in_No_Steady_Up_Down,
-            "examide": self._check_not_in_No_Steady_Up_Down,
-            "citoglipton": self._check_not_in_No_Steady_Up_Down,
-            "insulin": self._check_not_in_No_Steady_Up_Down,
-            "glyburide-metformin": self._check_not_in_No_Steady_Up_Down,
-            "glipizide-metformin": self._check_not_in_No_Steady_Up_Down,
-            "glimepiride-pioglitazone": self._check_not_in_No_Steady_Up_Down,
-            "metformin-rosiglitazone": self._check_not_in_No_Steady_Up_Down,
-            "metformin-pioglitazone": self._check_not_in_No_Steady_Up_Down,
-            "change": check_with_spelling_library,
-            "diabetesMed": check_with_spelling_library,
-            "readmitted": check_with_spelling_library,
-            "admission_type_desc": check_with_spelling_library,
-            "admission_source_desc": check_with_spelling_library,
-            "discharge_disposition_desc": check_with_spelling_library,
+            "max_glu_serum": is_not_a_valid_max_glu_serum,
+            "A1Cresult": is_not_a_valid_a1c_result,
+            "metformin": is_not_in_no_steady_up_down,
+            "repaglinide": is_not_in_no_steady_up_down,
+            "nateglinide": is_not_in_no_steady_up_down,
+            "chlorpropamide": is_not_in_no_steady_up_down,
+            "glimepiride": is_not_in_no_steady_up_down,
+            "acetohexamide": is_not_in_no_steady_up_down,
+            "glipizide": is_not_in_no_steady_up_down,
+            "glyburide": is_not_in_no_steady_up_down,
+            "tolbutamide": is_not_in_no_steady_up_down,
+            "pioglitazone": is_not_in_no_steady_up_down,
+            "rosiglitazone": is_not_in_no_steady_up_down,
+            "acarbose": is_not_in_no_steady_up_down,
+            "miglitol": is_not_in_no_steady_up_down,
+            "troglitazone": is_not_in_no_steady_up_down,
+            "tolazamide": is_not_in_no_steady_up_down,
+            "examide": is_not_in_no_steady_up_down,
+            "citoglipton": is_not_in_no_steady_up_down,
+            "insulin": is_not_in_no_steady_up_down,
+            "glyburide-metformin": is_not_in_no_steady_up_down,
+            "glipizide-metformin": is_not_in_no_steady_up_down,
+            "glimepiride-pioglitazone": is_not_in_no_steady_up_down,
+            "metformin-rosiglitazone": is_not_in_no_steady_up_down,
+            "metformin-pioglitazone": is_not_in_no_steady_up_down,
+            "change": is_not_a_valid_change,
+            "diabetesMed": is_not_a_valid_diabetes_med,
+            "readmitted": is_not_a_valid_readmitted,
+            "admission_type_desc": is_not_a_valid_admission_type_desc,
+            "admission_source_desc": is_not_a_valid_admission_source_desc,
+            "discharge_disposition_desc": is_not_a_valid_discharge_disposition_desc,
         }
 
 
@@ -83,6 +97,9 @@ class MedicalDetector(Detector):
         # TODO: using a categorical_values_list greatly DECREASES the number of typos and misspelings and INCREASES the number of OCR errors, check if this is correct
         no_steady_up_down_func = partial(differentiate_errors_in_string_column, categorical_values=['No', 'Steady', 'Up', 'Down'])
         medical_specialty_func = partial(differentiate_errors_in_string_column, categorical_values=MEDICAL_SPECIALTY_VALUES)
+        admission_type_desc_func = partial(differentiate_errors_in_string_column, categorical_values=ADMISSION_TYPE_DESC_VALUES)
+        admission_source_desc_func = partial(differentiate_errors_in_string_column, categorical_values=ADMISSION_SOURCE_DESC_VALUES)
+        discharge_disposition_desc_func = partial(differentiate_errors_in_string_column, categorical_values=DISCHARGE_DISPOSITION_DESC_VALUES)
 
         return {
             "encounter_id": set_all_labels_to_ocr,                      # IDs have no typos -> OCR
@@ -103,9 +120,9 @@ class MedicalDetector(Detector):
             "number_outpatient": set_all_labels_to_ocr,
             "number_emergency": set_all_labels_to_ocr,
             "number_inpatient": set_all_labels_to_ocr,
-            "diag_1": set_all_labels_to_ocr,
-            "diag_2": differentiate_errors_in_string_column,
-            "diag_3": differentiate_errors_in_string_column,
+            "diag_1": differentiate_errors_in_string_column,            # most of them are OCRs, but there are definitely some typos in there e.g. 278
+            "diag_2": differentiate_errors_in_string_column,            # most of them are OCRs, but there are definitely some typos in there e.g. 278
+            "diag_3": differentiate_errors_in_string_column,            # most of them are OCRs, but there are definitely some typos in there e.g. 278
             "number_diagnoses": differentiate_errors_in_string_column,
             "max_glu_serum": set_all_labels_to_ocr,
             "A1Cresult": set_all_labels_to_ocr,
@@ -134,51 +151,38 @@ class MedicalDetector(Detector):
             "metformin-pioglitazone": no_steady_up_down_func,
             "change": differentiate_errors_in_string_column,
             "diabetesMed": differentiate_errors_in_string_column,
-            "readmitted": differentiate_errors_in_string_column,
-            "admission_type_desc": differentiate_errors_in_string_column,
-            "admission_source_desc": differentiate_errors_in_string_column,
-            "discharge_disposition_desc": differentiate_errors_in_string_column,
+            "readmitted": set_all_labels_to_ocr,                        # Manual check -> all OCRs
+            "admission_type_desc": admission_type_desc_func,
+            "admission_source_desc": admission_source_desc_func,
+            "discharge_disposition_desc": discharge_disposition_desc_func,
         }
-    
-    def _check_payer_code_is_MC(self, payer_code: str) -> bool:
+
+    def _is_not_payer_code_MC(self, payer_code: str) -> bool:
         """
         Check if the payer code is 'MC' (Medicare).
         It returns 1, if the payer code is not 'MC', otherwise it returns 0.
         """
         return payer_code if not payer_code.strip().upper() == "MC" else 0
 
-    def _check_not_in_No_Steady_Up_Down(self, word: str) -> bool:
+    def _is_not_icd9_code(self, value: str) -> bool:
         """
-        Check if the word is not in the '[No, Steady, Up, Down]' list.
-        It returns the misspelled word, if it is not in the list (invalid), otherwise it returns 0 (valid).
+        ICD-9 codes are either a number or a string.
+        If it is a number, it must be between 0 and 1000.
+        If it is a string, it must be an E-code or a V-code. E-codes are between E800 and E999, V-codes are between V01 and V82.
         """
-        if not str(word).strip() in ['No', 'Steady', 'Up', 'Down']:
-            return word
+        if not is_a_number(value):
+            e_codes = [f"E{num}" for num in range(800, 1000)]
+            v_codes_0 = [f"V0{num}" for num in range(1, 10)]
+            v_codes_10 = [f"V{num}" for num in range(10, 83)]
+            v_codes = v_codes_0 + v_codes_10
+
+            if not value in e_codes and not value in v_codes:
+                return value
+        else:
+            if float(value) > 1000:
+                return value
         return 0
 
-    def _not_a_max_glu_serum(self, word: str) -> bool:
-        if not str(word).strip() in ['Norm', 'Not Available', '>200', '>300']:
-            return word
-        return 0
-    
-    def _not_a_a1c_result(self, word: str) -> bool:
-        if not str(word).strip() in ['Norm','Not Available', '>7', '>8']:
-            return word
-        return 0
-
-    def _is_not_a_valid_race(self, race: str) -> bool:
-        """
-        Check if the race is not a valid race.
-        It returns 1, if the race is not a valid race, otherwise it returns 0.
-        """
-        return race if not str(race) in ['Caucasian', 'AfricanAmerican', 'Asian', 'Hispanic', 'Other'] else 0
-
-    def _is_not_male_female(self, gender: str) -> bool:
-        """
-        Check if the gender is not a valid gender.
-        It returns 1, if the gender is not a valid gender, otherwise it returns 0.
-        """
-        return gender if not str(gender) in ['Male', 'Female'] else 0
 
     def _label_diabetesMed_change_transpositions(self):
         """
@@ -187,3 +191,11 @@ class MedicalDetector(Detector):
         """
         change_in_diabetes_med = self.dataset[self.dataset['diabetesMed'] == "Ch"]
         self._label_word_transpositions(column_names=["diabetesMed", "change"], row_indices=change_in_diabetes_med.index)
+
+    def _label_num_procedures_num_medications_transpositions(self):
+        """
+        Num procedures is a number, but it can only be between 0 and 12, while num_medications has a much higher value range.
+        """
+        both_numeric = self.dataset[self.dataset['num_procedures'].apply(is_a_number) & self.dataset['num_medications'].apply(is_a_number)]
+        num_procedures_is_greater_12 = both_numeric[both_numeric['num_procedures'].astype(int) > 12]
+        self._label_word_transpositions(column_names=["Rainfall", "Evaporation"], row_indices=num_procedures_is_greater_12.index)

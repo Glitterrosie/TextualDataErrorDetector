@@ -26,7 +26,6 @@ class Detector(ABC):
         self.generic_labeled_dataset = pd.DataFrame(0, index=self.dataset.index, columns=self.dataset.columns)
         column_generic_label_mapping = self.get_column_generic_label_mapping()
         for column_name in self.dataset.columns:
-            #print(f"Generically labelling {column_name}")
             if column_name not in column_generic_label_mapping:
                 print(f"Warning: Column '{column_name}' not found in generic label mapping. Skipping.")
                 continue
@@ -38,7 +37,6 @@ class Detector(ABC):
 
         specific_column_label_mapping = self.get_column_specific_label_mapping()
         for column_name in self.dataset.columns:
-            #print(f"Specifically labelling {column_name}")
             generic_labeled_cell_indices = self._get_generic_labeled_cell_indices(column_name)
 
             # each column has its own mapping function how to assign specific error types to the generic labeled cells

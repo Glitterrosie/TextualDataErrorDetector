@@ -2,10 +2,12 @@ from functools import partial
 
 from error_types import ErrorType
 from detector import Detector
+from constants.categorical_values import VALID_WIND_DIRECTIONS
 from utils.generic_label_utils import (
     check_with_spelling_library,
     is_a_number,
     is_not_a_number,
+    is_not_value_in_list,
 )
 from utils.specific_label_utils import (
     differentiate_errors_in_number_column,
@@ -13,10 +15,6 @@ from utils.specific_label_utils import (
     set_all_labels_to_ocr,
 )
 
-VALID_WIND_DIRECTIONS = {
-    "N", "NNE", "NE", "ENE", "E", "ESE", "SE", "SSE",
-    "S", "SSW", "SW", "WSW", "W", "WNW", "NW", "NNW"
-}
 
 
 class WeatherDetector(Detector):
@@ -81,6 +79,9 @@ class WeatherDetector(Detector):
 
 
     def get_column_generic_label_mapping(self) -> dict:
+        is_not_a_valid_wind_dir = partial(is_not_value_in_list, categorical_values_list=VALID_WIND_DIRECTIONS)
+        is_not_yes_no = partial(is_not_value_in_list, categorical_values_list=['Yes', 'No'])
+
         return {
             "Date": self._is_not_a_valid_date,
             "Location": check_with_spelling_library,
@@ -89,10 +90,10 @@ class WeatherDetector(Detector):
             "Rainfall": is_not_a_number,
             "Evaporation":is_not_a_number,
             "Sunshine": is_not_a_number,
-            "WindGustDir":  self._is_not_valid_wind_dir,
+            "WindGustDir":  is_not_a_valid_wind_dir,
             "WindGustSpeed": is_not_a_number,
-            "WindDir9am": self._is_not_valid_wind_dir,
-            "WindDir3pm": self._is_not_valid_wind_dir,
+            "WindDir9am": is_not_a_valid_wind_dir,
+            "WindDir3pm": is_not_a_valid_wind_dir,
             "WindSpeed9am": is_not_a_number,
             "WindSpeed3pm": is_not_a_number,
             "Humidity9am": is_not_a_number,
@@ -103,8 +104,8 @@ class WeatherDetector(Detector):
             "Cloud3pm": is_not_a_number,
             "Temp9am": is_not_a_number,
             "Temp3pm": is_not_a_number,
-            "RainToday": self._is_not_yes_no,
-            "RainTomorrow": self._is_not_yes_no,
+            "RainToday": is_not_yes_no,
+            "RainTomorrow": is_not_yes_no,
         }
 
     def get_column_specific_label_mapping(self) -> dict:
@@ -150,19 +151,6 @@ class WeatherDetector(Detector):
         if not (1 <= int(month) <= 12 and 1 <= int(day) <= 31):
             return value
         return 0
-
-    def _is_not_valid_wind_dir(self, value: str) -> bool:
-        """
-        Check if the wind gust direction is not a valid direction.
-        Valid directions are: N, NNE, NE, ENE, E, ESE, SE, SSE, S, SSW, SW, WSW, W, WNW, NW, NNW.
-        """
-        return value if value not in VALID_WIND_DIRECTIONS else 0
-
-    def _is_not_yes_no(self, value: str) -> bool:
-        """
-        Check if the value is not 'Yes' or 'No'.
-        """
-        return value if value not in ["Yes", "No"] else 0
 
     def _is_not_valid_pressure(self, value: str) -> bool:
         """

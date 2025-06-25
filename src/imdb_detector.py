@@ -149,6 +149,9 @@ class IMDBDetector(Detector):
         except ValueError:
             return value
 
+    def _is_not_a_valid_hash(self, value: str):
+        return value if not all(c in "0123456789abcdefABCDEF" for c in value) else 0
+
     def _label_phonetic_code(self, data_column: pd.Series, generic_labeled_cell_indices: pd.Index, generic_labeled_dataset) -> pd.Series:
         label_column = pd.Series(0, index=data_column.index, dtype=int)
         flawed_words_series = generic_labeled_dataset.loc[generic_labeled_cell_indices]
@@ -169,9 +172,6 @@ class IMDBDetector(Detector):
                 label_column.loc[index] = error_word_map[word]
 
         return label_column
-    
-    def _is_not_a_valid_hash(self, value: str):
-        return value if not all(c in "0123456789abcdefABCDEF" for c in value) else 0
 
     def _label_cast_note_person_note_transpositions(self):
         """
