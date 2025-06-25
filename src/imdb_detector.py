@@ -177,9 +177,23 @@ class IMDBDetector(Detector):
         """
         The cast_note and person_note columns have transpositions. The rule we found (which does not hold in all cases) is that
         the cast_note is round braces, while the person_note is only sometimes in braces.
+        Labels as transpositions in two cases:
+        1. When person_note is in braces and neither column has existing errors
+        2. When cast_note is not in braces (regardless of existing errors)
         """
+        # Case 1: person_note in braces and no error detected in either cast_note or person_note column
         person_note_in_braces = self.dataset[self.dataset['person_note'].str.startswith('(') & self.dataset['person_note'].str.endswith(')')]
-        self._label_word_transpositions(column_names=["cast_note", "person_note"], row_indices=person_note_in_braces.index)
+        no_existing_errors = ~((self.labels.loc[person_note_in_braces.index, 'cast_note'].isin([1, 2, 3])) | 
+                             (self.labels.loc[person_note_in_braces.index, 'person_note'].isin([1, 2, 3])))
+        indices_case1 = person_note_in_braces.index[no_existing_errors]
+        
+        # Case 2: cast_note not in braces
+        cast_note_not_in_braces = self.dataset[~self.dataset['cast_note'].str.startswith('(') & ~self.dataset['cast_note'].str.endswith(')')]
+        indices_case2 = cast_note_not_in_braces.index
+
+        # Combine indices and label transpositions
+        all_indices = indices_case1.union(indices_case2)
+        self._label_word_transpositions(column_names=["cast_note", "person_note"], row_indices=all_indices)
  
     def _label_cast_id_cast_person_id_transpositions(self):
         """
