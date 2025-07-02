@@ -107,5 +107,11 @@ OCR_LETTER_TO_NUMBER_MAPPING = {
 }
 
 def get_misspellings_list():
-    with open('/src/constants/misspellings', 'r') as f:
-        return f.read().splitlines()
+    with open('/src/constants/misspellings.txt', 'r') as f:
+        line_list = f.read().splitlines()
+
+    misspellings_list = []
+    for line in line_list:
+        words = line.split(' ')
+        misspellings_list.extend(words[1:]) # the first word is the correct spelling
+    return misspellings_list
