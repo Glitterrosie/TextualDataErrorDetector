@@ -115,3 +115,8 @@ def get_misspellings_list():
         words = line.split(' ')
         misspellings_list.extend(words[1:]) # the first word is the correct spelling
     return misspellings_list
+
+def get_australian_cities_list():
+    with open('/src/constants/australian_cities.txt', 'r') as f:
+        cities_list = f.read().splitlines()
+    return cities_list
