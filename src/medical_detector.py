@@ -1,7 +1,7 @@
 from functools import partial
 
 from detector import Detector
-from constants.categorical_values import DISCHARGE_DISPOSITION_DESC_VALUES, ADMISSION_TYPE_DESC_VALUES, ADMISSION_SOURCE_DESC_VALUES, MEDICAL_SPECIALTY_VALUES
+from constants.categorical_values import DISCHARGE_DISPOSITION_ID_DESC_MAPPING, ADMISSION_TYPE_ID_DESC_MAPPING, ADMISSION_SOURCE_ID_DESC_MAPPING, MEDICAL_SPECIALTY_VALUES, PAYER_CODE_VALUES
 from utils.generic_label_utils import check_with_spelling_library, is_a_number, is_not_a_number, is_not_a_number_in_range, is_not_value_in_list
 from utils.specific_label_utils import (
     differentiate_errors_in_number_column,
@@ -27,9 +27,9 @@ class MedicalDetector(Detector):
         is_not_a_valid_gender = partial(is_not_value_in_list, categorical_values_list=['Male', 'Female', 'Unknown/Invalid'])
         is_not_in_no_steady_up_down = partial(is_not_value_in_list, categorical_values_list=['No', 'Steady', 'Up', 'Down'])
         is_not_a_valid_medical_specialty = partial(is_not_value_in_list, categorical_values_list=MEDICAL_SPECIALTY_VALUES)
-        is_not_a_valid_admission_type_desc = partial(is_not_value_in_list, categorical_values_list=ADMISSION_TYPE_DESC_VALUES)
-        is_not_a_valid_admission_source_desc = partial(is_not_value_in_list, categorical_values_list=ADMISSION_SOURCE_DESC_VALUES)
-        is_not_a_valid_discharge_disposition_desc = partial(is_not_value_in_list, categorical_values_list=DISCHARGE_DISPOSITION_DESC_VALUES)
+        is_not_a_valid_admission_type_desc = partial(is_not_value_in_list, categorical_values_list=ADMISSION_TYPE_ID_DESC_MAPPING.values())
+        is_not_a_valid_admission_source_desc = partial(is_not_value_in_list, categorical_values_list=ADMISSION_SOURCE_ID_DESC_MAPPING.values())
+        is_not_a_valid_discharge_disposition_desc = partial(is_not_value_in_list, categorical_values_list=DISCHARGE_DISPOSITION_ID_DESC_MAPPING.values())
         is_not_a_valid_max_glu_serum = partial(is_not_value_in_list, categorical_values_list=['Norm', 'Not Available', '>200', '>300'])
         is_not_a_valid_a1c_result = partial(is_not_value_in_list, categorical_values_list=['Norm','Not Available', '>7', '>8'])
         is_not_a_valid_readmitted = partial(is_not_value_in_list, categorical_values_list=['No', '<30', '>30'])
@@ -43,11 +43,11 @@ class MedicalDetector(Detector):
             "gender": is_not_a_valid_gender,
             "age": is_not_a_number,
             "weight": is_not_a_number,
-            "admission_type_id": partial(is_not_a_number_in_range, min_value=0, max_value=9),
+            "admission_type_id": partial(is_not_a_number_in_range, min_value=0, max_value=8),
             "discharge_disposition_id": partial(is_not_a_number_in_range, min_value=0, max_value=29),
-            "admission_source_id": partial(is_not_a_number_in_range, min_value=0, max_value=19),
+            "admission_source_id": partial(is_not_a_number_in_range, min_value=0, max_value=26),
             "time_in_hospital": partial(is_not_a_number_in_range, min_value=0, max_value=30),
-            "payer_code": self._is_not_payer_code_MC,
+            "payer_code": partial(is_not_value_in_list, categorical_values_list=PAYER_CODE_VALUES),
             "medical_specialty": is_not_a_valid_medical_specialty,
             "num_lab_procedures": is_not_a_number,
             "num_procedures": is_not_a_number,
@@ -94,12 +94,11 @@ class MedicalDetector(Detector):
 
 
     def get_column_specific_label_mapping(self) -> dict:
-        # TODO: using a categorical_values_list greatly DECREASES the number of typos and misspelings and INCREASES the number of OCR errors, check if this is correct
         no_steady_up_down_func = partial(differentiate_errors_in_string_column, categorical_values=['No', 'Steady', 'Up', 'Down'])
         medical_specialty_func = partial(differentiate_errors_in_string_column, categorical_values=MEDICAL_SPECIALTY_VALUES)
-        admission_type_desc_func = partial(differentiate_errors_in_string_column, categorical_values=ADMISSION_TYPE_DESC_VALUES)
-        admission_source_desc_func = partial(differentiate_errors_in_string_column, categorical_values=ADMISSION_SOURCE_DESC_VALUES)
-        discharge_disposition_desc_func = partial(differentiate_errors_in_string_column, categorical_values=DISCHARGE_DISPOSITION_DESC_VALUES)
+        admission_type_desc_func = partial(differentiate_errors_in_string_column, categorical_values=ADMISSION_TYPE_ID_DESC_MAPPING.values())
+        admission_source_desc_func = partial(differentiate_errors_in_string_column, categorical_values=ADMISSION_SOURCE_ID_DESC_MAPPING.values())
+        discharge_disposition_desc_func = partial(differentiate_errors_in_string_column, categorical_values=DISCHARGE_DISPOSITION_ID_DESC_MAPPING.values())
 
         return {
             "encounter_id": set_all_labels_to_ocr,                      # IDs have no typos -> OCR
@@ -156,13 +155,6 @@ class MedicalDetector(Detector):
             "admission_source_desc": admission_source_desc_func,
             "discharge_disposition_desc": discharge_disposition_desc_func,
         }
-
-    def _is_not_payer_code_MC(self, payer_code: str) -> bool:
-        """
-        Check if the payer code is 'MC' (Medicare).
-        It returns 1, if the payer code is not 'MC', otherwise it returns 0.
-        """
-        return payer_code if not payer_code.strip().upper() == "MC" else 0
 
     def _is_not_icd9_code(self, value: str) -> bool:
         """
