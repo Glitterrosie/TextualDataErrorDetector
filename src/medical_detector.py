@@ -20,7 +20,7 @@ class MedicalDetector(Detector):
 
         super().detect()
         self._label_diabetesMed_change_transpositions()
-        self._label_num_procedures_num_medications_transpositions()
+        # self._label_num_procedures_num_medications_transpositions() # lead to a decrease in correctly detected tranpositions, but no increase in recall, that's why we are not using it.
 
     def get_column_generic_label_mapping(self) -> dict:
         is_not_a_valid_race = partial(is_not_value_in_list, categorical_values_list=['Caucasian', 'AfricanAmerican', 'Asian', 'Hispanic', 'Other'])
@@ -186,6 +186,7 @@ class MedicalDetector(Detector):
 
     def _label_num_procedures_num_medications_transpositions(self):
         """
+        This change lead to a decrease in correctly detected tranpositions, but no increase in recall, that's why we are not using it.
         Num procedures is a number, but it can only be between 0 and 12, while num_medications has a much higher value range.
         """
         both_numeric = self.dataset[self.dataset['num_procedures'].apply(is_a_number) & self.dataset['num_medications'].apply(is_a_number)]
