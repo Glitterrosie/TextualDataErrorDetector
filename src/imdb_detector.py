@@ -82,8 +82,8 @@ class IMDBDetector(Detector):
             "production_year": set_all_labels_to_ocr,               # Manual check -> all OCRs
             "phonetic_code": self._label_phonetic_code,
             "episode_of_id": set_all_labels_to_ocr,                 # IDs have no typos -> OCR
-            "season_nr": set_all_labels_to_ocr,                     # TODO
-            "episode_nr": set_all_labels_to_ocr,                    # TODO
+            "season_nr": set_all_labels_to_ocr,
+            "episode_nr": set_all_labels_to_ocr,
             "series_years": series_years_label_func,
             "md5sum": set_all_labels_to_ocr,                        # this column only contains OCRs
             "name": set_all_labels_to_ocr,                          # Manual check -> all OCRs
