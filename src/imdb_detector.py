@@ -82,8 +82,8 @@ class IMDBDetector(Detector):
             "production_year": set_all_labels_to_ocr,               # Manual check -> all OCRs
             "phonetic_code": self._label_phonetic_code,
             "episode_of_id": set_all_labels_to_ocr,                 # IDs have no typos -> OCR
-            "season_nr": set_all_labels_to_ocr,                     # TODO
-            "episode_nr": set_all_labels_to_ocr,                    # TODO
+            "season_nr": set_all_labels_to_ocr,
+            "episode_nr": set_all_labels_to_ocr,
             "series_years": series_years_label_func,
             "md5sum": set_all_labels_to_ocr,                        # this column only contains OCRs
             "name": set_all_labels_to_ocr,                          # Manual check -> all OCRs
@@ -201,5 +201,5 @@ class IMDBDetector(Detector):
         Therefore if cast_id has 7 digits, it was probably switched.
         """
         both_numeric = self.dataset[self.dataset['cast_id'].apply(is_a_number) & self.dataset['cast_person_id'].apply(is_a_number)]
-        rainfall_contains_153712 = both_numeric[both_numeric['cast_id'].astype(str).str.len() != 8]
-        self._label_word_transpositions(column_names=["cast_id", "cast_person_id"], row_indices=rainfall_contains_153712.index)
+        cast_id_unqueal_8_digits = both_numeric[both_numeric['cast_id'].astype(str).str.len() != 8]
+        self._label_word_transpositions(column_names=["cast_id", "cast_person_id"], row_indices=cast_id_unqueal_8_digits.index)

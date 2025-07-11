@@ -183,10 +183,6 @@ def label_number_with_ocr_or_typo(word: str | int | float, min_value: float = No
         if is_replaced_ocr_in_range(word, min_value, max_value): # values like 77 would be replaced to 17, 71 or 11, which could be in range and therefore labeled as OCR instead of typo
             return ErrorType.OCR.value
 
-    # TODO: When improveing the generic labeling of a number column, print, which values are labeled as Typos to see if they are really typos or if we can label them as OCRs.
-    # print("Typo: ", word)
-
-    # TODO: Check if it is necessary to differentiate further. We would need concrete examples of where a typo was introduced in a number column.
     return ErrorType.TYPO.value
 
 
@@ -227,7 +223,7 @@ def is_replaced_ocr_in_range(word: str | int | float, min_value: float, max_valu
             if min_value <= float(word.replace(char, replacement_num)) <= max_value: # this replaces all occurences of the char in the word
                 return True
 
-    # TODO: We only check for one OCR replacement at a time. This is usually sufficient for cases like 77 in range (0, 30), but there could be cases like 78 in range (0, 10) where we would have to replace both 7 and 8 simultaneously.
+    # We only check for one OCR replacement at a time. This is usually sufficient for cases like 77 in range (0, 30), but there could be cases like 78 in range (0, 10) where we would have to replace both 7 and 8 simultaneously.
     return False
 
 
