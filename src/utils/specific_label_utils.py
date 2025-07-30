@@ -29,8 +29,8 @@ def differentiate_errors_in_string_column(data_column: pd.Series, generic_labele
     
     typo_values_map = {}
 
-    for value in unique_flawed_values: # values can also be contain multiple words like "Emergency Rome"
-        if is_misspelling(value, correct_words_list):
+    for value in unique_flawed_values: # values can also contain multiple words like "Emergency Rome"
+        if any(is_misspelling(token, correct_words_list) for token in tokenizer.tokenize_cell(value)):
             typo_values_map[value] = ErrorType.MISSPELLING.value
         elif ends_with_signs_near_enter(value):
             typo_values_map[value] = ErrorType.TYPO.value
