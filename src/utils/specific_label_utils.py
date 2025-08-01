@@ -86,7 +86,7 @@ def is_deletion(word, correct_words_list):
         correct_words_list = set(w.lower() for w in correct_words_list)
 
     for i in range(len(word) + 1):
-        for char in (string.ascii_lowercase):
+        for char in KEYBOARD_NEIGHBORS:
             candidates = word[:i] + char + word[i:]
             if all(candidate in correct_words_list for candidate in candidates.split()):
                 return True
